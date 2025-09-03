@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "module": "commonjs",
+    "sourceMap": true,
+    "strict": true,
+    "outDir": "dist/",
+    "rootDir": ".",
+    "baseUrl": ".",
+    "esModuleInterop": true,
+    "composite": true,
+    "types":["node"],
+    "typeRoots": ["./node_modules/@types","./types"]
+  },
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "typings/*",
+    "node_modules"
+  ],
+  "ts-node": {
+    "transpileOnly": true,
+    "files": true
+  },
+}
