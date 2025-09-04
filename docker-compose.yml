@@ -2,18 +2,24 @@ version: '3.8'
 
 services:
   redis:
-    image: redis:7-alpine
+    image: redis:latest
     container_name: dam-redis
     ports:
       - "6379:6379"
-    volumes:
-      - redis_data:/data
-    networks:
-      - dam-network
+  minio:
+    image: minio/minio:latest
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+      MINIO_DEFAULT_BUCKETS: mybucket
+    command: server /data --console-address ":9001"
 
   backend:
     build: ./backend
-    container_name: backend_container
+    container_name: dam_be_container
     restart: always
     ports:
       - "5000:5000"
@@ -25,19 +31,19 @@ services:
       - ACCESS_TOKEN_EXPIRY=1d
       - ACCESS_TOKEN_SECRET=1234
       - CORS_ORIGIN=http://localhost:5173
-      
+
   frontend:
     build: ./frontend
-    container_name: frontend_container
+    container_name: dam_fe_container
     restart: always
     ports:
-      - "3000:80"
+      - "80:80"
     depends_on:
       - backend
 
   mongodb:
     image: mongo:latest
-    container_name: mongodb_container
+    container_name: mongodb_dam_container
     ports:
       - "27017:27017"
     volumes:

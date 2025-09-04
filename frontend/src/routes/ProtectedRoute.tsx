@@ -12,6 +12,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   if (loading) {
     return <div className="spinner">Loading...</div>
   }
+
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />
   }

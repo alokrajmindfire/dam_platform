@@ -6,7 +6,7 @@ export async function handleApi<T>(
     return { success: response.data.success, data: response.data.data }
   } catch (error: any) {
     const message = error?.response?.data?.message || 'Something went wrong'
-    console.log(error)
+    // console.log(error)
     return { success: false, message }
   }
 }

@@ -11,7 +11,7 @@ import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
 import type { AxiosError } from 'axios'
 
-export const LoginForm: React.FC = () => {
+const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const { login } = useAuth()
@@ -45,7 +45,7 @@ export const LoginForm: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center  py-12 px-4 sm:px-6 lg:px-8">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">Welcome back</CardTitle>
@@ -92,3 +92,4 @@ export const LoginForm: React.FC = () => {
     </div>
   )
 }
+export default LoginForm
