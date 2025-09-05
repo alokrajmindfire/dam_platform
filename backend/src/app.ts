@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import authRoute from './routes/auth.route';
+import assetsRouter from './routes/assets.route';
 import helmet from 'helmet';
 import morgan from 'morgan';
 
@@ -23,6 +24,7 @@ app.use(cookieParser());
 app.set('trust proxy', 1);
 
 app.use('/api/auth', authRoute);
+app.use('/api/assets', assetsRouter);
 app.use((req, res) => {
   res.status(404).send('Route Not Found');
 });
