@@ -5,6 +5,7 @@ import { AssetRepository } from '../repositories/assets.repositories';
 import { BUCKET_NAME, minioClient } from '../config/minio';
 import { Schema } from 'mongoose';
 import { IAsset } from 'src/models/assets.model';
+import { assetProcessingQueue } from 'src/config/queue';
 
 export class AssetService {
   static async uploadAsset(
@@ -43,7 +44,23 @@ export class AssetService {
       };
 
       const asset = await AssetRepository.create(assetData);
-
+      await assetProcessingQueue.add(
+        'process-asset',
+        {
+          assetId: asset.id,
+          storagePath,
+          mimeType: file.mimetype,
+          filename,
+        },
+        {
+          priority: file.mimetype.startsWith('image/') ? 1 : 2,
+          attempts: 3,
+          backoff: {
+            type: 'exponential',
+            delay: 2000,
+          },
+        },
+      );
       return asset;
     } catch (error) {
       console.error('Asset upload failed:', error);

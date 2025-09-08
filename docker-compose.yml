@@ -6,6 +6,8 @@ services:
     container_name: dam-redis
     ports:
       - "6379:6379"
+    environment:
+      - REDIS_PASSWORD=admin12345
   minio:
     image: minio/minio:latest
     ports:
@@ -27,6 +29,7 @@ services:
     depends_on:
       - mongodb
       - minio
+      - redis
     environment:
       - MONGODB_URI=mongodb://mongodb:27017/dam_platform
       - PORT=5000
@@ -38,6 +41,9 @@ services:
       - MINIO_ROOT_USER=admin
       - MINIO_ROOT_PASSWORD=admin12345
       - MINIO_DEFAULT_BUCKETS=dam-assets
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=admin12345
   frontend:
     build: ./frontend
     container_name: dam_fe_container
