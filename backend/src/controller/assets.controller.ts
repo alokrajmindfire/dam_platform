@@ -46,9 +46,11 @@ const getAssetsId = asyncHandler(
 const getAssets = asyncHandler(
   async (req: Request & { user?: IUser }, res: Response) => {
     const user = req.user;
+    console.log('kslkSMklmskmdlks');
     if (!user) {
       throw new ApiError(404, 'User does not exist');
     }
+    console.log('user', user);
     const assets = await AssetService.getAssetsUrl(
       user._id as Schema.Types.ObjectId,
     );

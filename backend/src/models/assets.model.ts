@@ -13,7 +13,10 @@ export interface IAsset extends Document {
     width?: number;
     height?: number;
     duration?: number;
-    transcoded: any;
+  };
+  transcoded?: {
+    '1080p': string;
+    '720p': string;
   };
   tags?: string[];
   description?: string;
@@ -59,10 +62,10 @@ const AssetSchema = new Schema<IAsset>(
       width: Number,
       height: Number,
       duration: Number,
-      transcoded: {
-        type: Map,
-        of: String,
-      },
+    },
+    transcoded: {
+      type: Map,
+      of: String,
     },
     tags: [
       {

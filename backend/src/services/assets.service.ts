@@ -76,15 +76,19 @@ export class AssetService {
       7 * 24 * 60 * 60,
     );
   }
-  static async getAssetsUrl(
-    user_id: Schema.Types.ObjectId,
-  ): Promise<(IAsset & { url: string })[]> {
+  static async getAssetsUrl(user_id: Schema.Types.ObjectId): Promise<
+    ({
+      url: string;
+      thumbnailUrlSigned?: string;
+      transcodedUrls?: Record<string, string>;
+    } & Partial<IAsset>)[]
+  > {
     const assets = await AssetRepository.findMany(user_id);
 
     if (!assets || assets.length === 0) {
       throw new Error('No assets found');
     }
-
+    console.log('asas', assets);
     const assetsWithUrls = await Promise.all(
       assets.map(async (asset) => {
         const url = await minioClient.presignedGetObject(
@@ -92,10 +96,32 @@ export class AssetService {
           asset.storagePath,
           7 * 24 * 60 * 60,
         );
+        let thumbnailUrlSigned: string | undefined = undefined;
+        if (asset.thumbnailUrl) {
+          thumbnailUrlSigned = await minioClient.presignedGetObject(
+            BUCKET_NAME,
+            asset.thumbnailUrl,
+            7 * 24 * 60 * 60,
+          );
+        }
 
+        let transcodedUrls: Record<string, string> = {};
+        if (asset.transcoded && typeof asset.transcoded === 'object') {
+          for (const [quality, path] of Object.entries(asset.transcoded)) {
+            if (path) {
+              transcodedUrls[quality] = await minioClient.presignedGetObject(
+                BUCKET_NAME,
+                path,
+                7 * 24 * 60 * 60,
+              );
+            }
+          }
+        }
         return {
-          ...asset.toObject(),
+          ...asset,
           url,
+          thumbnailUrlSigned,
+          transcodedUrls,
         };
       }),
     );

@@ -184,8 +184,8 @@ export class AssetProcessor {
           width: videoStream.width,
           height: originalHeight,
           duration: Math.round(parseFloat(metadata.format.duration)),
-          transcoded: transcodedPaths,
         },
+        transcoded: transcodedPaths,
         status: 'ready',
       });
     } catch (error) {

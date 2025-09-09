@@ -12,8 +12,8 @@ export class AssetRepository {
   }
 
   static async findMany(user_id: Schema.Types.ObjectId): Promise<IAsset[]> {
-    const assets = await Asset.find({ user_id });
-
+    const assets = await Asset.find({ userId: user_id }).lean();
+    console.log('assets', assets);
     return assets;
   }
 

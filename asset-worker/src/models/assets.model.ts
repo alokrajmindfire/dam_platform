@@ -13,12 +13,15 @@ export interface IAsset extends Document {
     width?: number;
     height?: number;
     duration?: number;
-    transcoded: string;
+  };
+  transcoded: {
+    '1080p': string;
+    '720p': string;
   };
   tags?: string[];
   description?: string;
   downloadCount: number;
-  userId: Types.ObjectId;
+  userId: Schema.Types.ObjectId;
 }
 
 const AssetSchema = new Schema<IAsset>(
@@ -59,10 +62,10 @@ const AssetSchema = new Schema<IAsset>(
       width: Number,
       height: Number,
       duration: Number,
-      transcoded: {
-        type: Map,
-        of: String,
-      },
+    },
+    transcoded: {
+      type: Map,
+      of: String,
     },
     tags: [
       {
