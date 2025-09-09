@@ -1,78 +1,94 @@
-import mongoose, { Schema, Document, Model } from 'mongoose';
+import mongoose, { Schema, Document, Model, Types } from 'mongoose';
 
 export interface IAsset extends Document {
   filename: string;
-  original_name: string;
-  mime_type: string;
-  file_size: number;
-  storage_path: string;
-  thumbnail_path?: string;
-  width?: number;
-  height?: number;
-  duration?: number;
-  tags: string[];
-  metadata: Record<string, any>;
-  user_id: Schema.Types.ObjectId;
-  download_count: number;
+  originalName: string;
+  mimeType: string;
+  size: number;
+  storagePath: string;
+  url?: string;
+  thumbnailUrl?: string;
+  status: 'uploading' | 'processing' | 'ready' | 'failed';
+  metadata?: {
+    width?: number;
+    height?: number;
+    duration?: number;
+    transcoded: string;
+  };
+  tags?: string[];
+  description?: string;
+  downloadCount: number;
+  userId: Types.ObjectId;
 }
-const AssetSchema: Schema<IAsset> = new Schema(
+
+const AssetSchema = new Schema<IAsset>(
   {
     filename: {
       type: String,
       required: true,
+      unique: true,
     },
-    original_name: {
+    originalName: {
       type: String,
       required: true,
     },
-    mime_type: {
+    mimeType: {
       type: String,
       required: true,
     },
-    file_size: {
+    size: {
       type: Number,
       required: true,
     },
-    storage_path: {
+    storagePath: {
       type: String,
       required: true,
     },
-    thumbnail_path: {
+    url: {
       type: String,
     },
-    width: {
-      type: Number,
+    thumbnailUrl: {
+      type: String,
     },
-    height: {
-      type: Number,
-    },
-    duration: {
-      type: Number,
-    },
-    tags: {
-      type: [String],
-      default: [],
+    status: {
+      type: String,
+      enum: ['uploading', 'processing', 'ready', 'failed'],
+      default: 'uploading',
     },
     metadata: {
-      type: Schema.Types.Mixed,
-      default: {},
+      width: Number,
+      height: Number,
+      duration: Number,
+      transcoded: {
+        type: Map,
+        of: String,
+      },
     },
-    user_id: {
+    tags: [
+      {
+        type: String,
+        trim: true,
+        lowercase: true,
+      },
+    ],
+    description: {
+      type: String,
+      trim: true,
+    },
+    downloadCount: {
+      type: Number,
+      default: 0,
+    },
+    userId: {
       type: Schema.Types.ObjectId,
       ref: 'User',
       required: true,
     },
-    download_count: {
-      type: Number,
-      default: 0,
-    },
   },
-  {
-    timestamps: true,
-  },
+  { timestamps: true },
 );
 
-export const AssetModel: Model<IAsset> = mongoose.model<IAsset>(
+export const Asset: Model<IAsset> = mongoose.model<IAsset>(
   'Asset',
   AssetSchema,
 );

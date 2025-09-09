@@ -1,11 +1,10 @@
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
-import { CreateAssetData } from '../types/assets.types';
 import { AssetRepository } from '../repositories/assets.repositories';
 import { BUCKET_NAME, minioClient } from '../config/minio';
-import { Schema } from 'mongoose';
-import { IAsset } from 'src/models/assets.model';
-import { assetProcessingQueue } from 'src/config/queue';
+import { Schema, Types } from 'mongoose';
+import { IAsset } from '../models/assets.model';
+import { assetProcessingQueue } from '../config/queue';
 
 export class AssetService {
   static async uploadAsset(
@@ -17,7 +16,7 @@ export class AssetService {
       const fileExtension = path.extname(file.originalname);
       const filename = `${fileId}${fileExtension}`;
       const storagePath = `assets/${filename}`;
-
+      console.log('file', file);
       await minioClient.putObject(
         BUCKET_NAME,
         storagePath,
@@ -29,18 +28,15 @@ export class AssetService {
         },
       );
 
-      const assetData: CreateAssetData = {
+      const assetData: Partial<IAsset> = {
         filename,
-        original_name: file.originalname,
-        mime_type: file.mimetype,
-        file_size: file.size,
-        storage_path: storagePath,
-        user_id: userId,
+        originalName: file.originalname,
+        mimeType: file.mimetype,
+        size: file.size,
+        storagePath: storagePath,
+        userId: userId,
         tags: this.generateTags(file.originalname, file.mimetype),
-        metadata: {
-          uploadedAt: new Date().toISOString(),
-          originalSize: file.size,
-        },
+        status: 'uploading',
       };
 
       const asset = await AssetRepository.create(assetData);
@@ -76,7 +72,7 @@ export class AssetService {
 
     return await minioClient.presignedGetObject(
       BUCKET_NAME,
-      asset.storage_path,
+      asset.storagePath,
       7 * 24 * 60 * 60,
     );
   }
@@ -93,7 +89,7 @@ export class AssetService {
       assets.map(async (asset) => {
         const url = await minioClient.presignedGetObject(
           BUCKET_NAME,
-          asset.storage_path,
+          asset.storagePath,
           7 * 24 * 60 * 60,
         );
 

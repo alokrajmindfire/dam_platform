@@ -21,7 +21,7 @@ const uploadAssets = asyncHandler(
       AssetService.uploadAsset(file, user._id as Schema.Types.ObjectId),
     );
     const assets = await Promise.all(uploadPromises);
-
+    console.log('assets', assets);
     return res
       .status(201)
       .json(new ApiResponse(201, assets, 'Assets uploaded successfully'));

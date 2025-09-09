@@ -11,5 +11,5 @@ export interface CreateAssetData {
   height?: number;
   duration?: number;
   tags?: string[];
-  metadata?: Record<string, any>;
+  size: number;
 }

@@ -1,5 +1,13 @@
 import mongoose from 'mongoose';
 
+export const closeDB = async () => {
+  try {
+    await mongoose.connection.close();
+  } catch (error) {
+    console.log('MONGODB connection close FAILED ', error);
+    process.exit(1);
+  }
+};
 const connectDB = async () => {
   try {
     const connectionInstance = await mongoose.connect(

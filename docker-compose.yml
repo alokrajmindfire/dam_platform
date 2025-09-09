@@ -19,7 +19,34 @@ services:
       MINIO_DEFAULT_BUCKETS: dam-assets
       
     command: server /data --console-address ":9001"
-
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb_dam_container
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: dam_platform
+  asset-worker:
+    build: ./asset-worker
+    container_name: dam_worker_container
+    restart: always
+    depends_on:
+      - redis
+      - minio
+      - mongodb
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/dam_platform
+      - MINIO_ENDPOINT=minio
+      - MINIO_PORT=9000
+      - MINIO_ROOT_USER=admin
+      - MINIO_ROOT_PASSWORD=admin12345
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=admin12345
+    volumes:
+      - /tmp:/tmp
   backend:
     build: ./backend
     container_name: dam_be_container
@@ -44,6 +71,7 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - REDIS_PASSWORD=admin12345
+      - REDIS_HOST=redis://redis:6379
   frontend:
     build: ./frontend
     container_name: dam_fe_container
@@ -53,15 +81,7 @@ services:
     depends_on:
       - backend
 
-  mongodb:
-    image: mongo:latest
-    container_name: mongodb_dam_container
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongodb_data:/data/db
-    environment:
-      MONGO_INITDB_DATABASE: dam_platform
+
 
 volumes:
   mongodb_data:

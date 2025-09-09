@@ -2,12 +2,13 @@ FROM node:18-alpine
 
 RUN apk add --no-cache ffmpeg
 
-WORKDIR /app
+WORKDIR /usr/src/app
 
-COPY package*.json ./
-RUN npm ci --only=production
+COPY package*.json tsconfig.json ./
+RUN npm install
 
 COPY . .
+
 RUN npm run build
 
 CMD ["npm", "start"]
