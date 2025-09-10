@@ -1,97 +1,81 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { assetsApi } from './api'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useState } from 'react'
+import type { Asset } from '@/types/asset'
 
-export const useAssets = () => {
+export interface UseAssetsResult {
+  assets: Asset[]
+  total: number
+  isLoading: boolean
+  searchAssets: (term: string, filterValue?: string) => void
+  changeFilter: (filterValue: string) => void
+  refetch: () => void
+  page: number
+  setPage: (page: number) => void
+  filter: string
+  setFilter: (filter: string) => void
+}
+
+export function useAssets(): UseAssetsResult {
   const queryClient = useQueryClient()
+  const [searchTerm, setSearchTerm] = useState<string>('')
+  const [filter, setFilter] = useState<string>('all')
+  const [page, setPage] = useState<number>(1)
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ['all-assets'],
-    queryFn: () => assetsApi.list(),
-    staleTime: 60 * 1000,
+    queryKey: ['assets', { search: searchTerm, filter, page }],
+    queryFn: () =>
+      assetsApi.listWithQuery({
+        search: searchTerm,
+        filter: filter !== 'all' ? filter : undefined,
+        page,
+        limit: 8,
+      }),
+    // staleTime: 60 * 1000,
   })
 
-  const originalAssets = data ?? []
+  const assets = data?.assets ?? []
+  const total = data?.total ?? 0
 
-  const [filters, setFilters] = useState<{
-    type?: string
-    status?: string
-    tags?: string[]
-    dateRange?: string
-  }>({
-    type: '',
-    status: '',
-    tags: [],
-    dateRange: '',
-  })
-
-  const [searchTerm, setSearchTerm] = useState('')
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
-
-  const searchAssets = useCallback((term: string) => {
-    setSearchTerm(term.trim().toLowerCase())
+  const searchAssets = useCallback((term: string, filterValue?: string) => {
+    setPage(1)
+    setSearchTerm(term)
+    if (filterValue !== undefined) {
+      setFilter(filterValue)
+    }
   }, [])
-
-  const filteredAssets = useMemo(() => {
-    if (!originalAssets || originalAssets.length === 0) return []
-
-    return originalAssets.filter((asset: any) => {
-      if (searchTerm) {
-        const hay =
-          `${asset.originalName ?? ''} ${asset.filename ?? ''} ${asset.tags?.join(' ') ?? ''} ${asset.mimeType ?? ''}`.toLowerCase()
-        if (!hay.includes(searchTerm)) return false
-      }
-
-      if (filters.type && asset.mimeType && !asset.mimeType.includes(filters.type)) return false
-
-      if (filters.status && asset.status !== filters.status) return false
-
-      if (filters.tags && filters.tags.length > 0) {
-        const assetTags = (asset.tags ?? []).map((t: string) => t.toLowerCase())
-        if (!filters.tags.some((t: string) => assetTags.includes(t.toLowerCase()))) return false
-      }
-
-      return true
-    })
-  }, [originalAssets, searchTerm, filters])
-
+  const changeFilter = useCallback((filterValue: string) => {
+    setPage(1)
+    setFilter(filterValue)
+  }, [])
   const reload = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: ['all-assets'] })
+    queryClient.invalidateQueries({ queryKey: ['assets'] })
     refetch()
   }, [queryClient, refetch])
 
-  const setFiltersWrapper = useCallback((f: typeof filters) => {
-    setFilters((prev) => ({ ...prev, ...f }))
-  }, [])
-
-  useEffect(() => {
-    if (!data) refetch()
-  }, [data, refetch])
-
   return {
-    assets: originalAssets,
-    filteredAssets,
+    assets,
+    total,
     isLoading,
+    searchAssets,
+    changeFilter, // new helper
     refetch: reload,
-    searchAssets: searchAssets,
-    filters,
-    setFilters: setFiltersWrapper,
-    viewMode,
-    setViewMode,
+    page,
+    setPage,
+    filter,
+    setFilter,
   }
 }
-// export const useUpdateTransaction = () => {
-//   const queryClient = useQueryClient()
 
-//   return useMutation({
-//     mutationFn: ({ id, data }: { id: string; data: Partial<Transaction> }) =>
-//       transactionApi.updateTransaction(id, data),
+export const useUploadAssets = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (files: File[]) => assetsApi.upload(files),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] })
+    },
 
-//     onSuccess: () => {
-//       queryClient.invalidateQueries({ queryKey: ['transactions'] })
-//     },
-
-//     onError: (error) => {
-//       console.error('Failed to update transaction', error)
-//     },
-//   })
-// }
+    onError: (error) => {
+      console.error('Upload failed:', error)
+    },
+  })
+}

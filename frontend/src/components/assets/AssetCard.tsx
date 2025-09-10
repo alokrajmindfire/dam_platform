@@ -1,8 +1,11 @@
 import { useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Download, Play } from 'lucide-react'
+import { Download } from 'lucide-react'
 import type { Asset } from '@/types/asset'
+import { toast } from 'sonner'
+import { Viewer, Worker } from '@react-pdf-viewer/core'
+import '@react-pdf-viewer/core/lib/styles/index.css'
 
 interface AssetCardProps {
   asset: Asset
@@ -15,33 +18,62 @@ export function AssetCard({ asset }: AssetCardProps) {
   const isVideo = asset.mimeType.startsWith('video/')
   const isPdf = asset.mimeType === 'application/pdf'
 
-  const handleDownload = () => {
-    const link = document.createElement('a')
-    link.href = asset.url
-    link.download = asset.originalName || asset.filename
-    link.click()
+  const handleDownload = async () => {
+    try {
+      const response = await fetch(asset.url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/pdf',
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = asset.originalName || asset.filename || 'download.pdf'
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      window.URL.revokeObjectURL(url)
+    } catch (err) {
+      console.error('Download failed', err)
+      toast.error('Download failed')
+    }
   }
 
+  // console.log('asset', asset)
   return (
     <>
       <div
         onClick={() => setOpen(true)}
         className="cursor-pointer rounded-lg overflow-hidden shadow hover:shadow-md transition bg-gray-100 flex items-center justify-center aspect-[4/3]"
       >
-        {asset.thumbnailUrlSigned && (
+        {asset.thumbnailUrlSigned ? (
           <img
             src={asset.thumbnailUrlSigned}
             alt={asset.filename}
             className="object-cover w-full h-full"
           />
-        )}
-        {/* {isVideo && (
-          <div className="flex items-center justify-center w-full h-full bg-black/30">
-            <Play className="w-10 h-10 text-white" />
+        ) : isImage ? (
+          <div className="flex flex-col items-center justify-center text-gray-600">
+            <span className="text-5xl">🖼️</span>
+            <span className="text-sm mt-2 text-black">{asset.status}</span>
           </div>
-        )}*/}
-        {isPdf && <span className="text-5xl">📄</span>}
-        {!isImage && !isVideo && !isPdf && <span className="text-5xl">📦</span>}
+        ) : isVideo ? (
+          <div className="flex flex-col items-center justify-center text-gray-600">
+            <span className="text-5xl">🎞️</span>
+            <span className="text-sm mt-2 text-black">{asset.status}</span>
+          </div>
+        ) : isPdf ? (
+          <span className="text-5xl">📄</span>
+        ) : (
+          <span className="text-5xl">📦</span>
+        )}
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
@@ -51,34 +83,35 @@ export function AssetCard({ asset }: AssetCardProps) {
           </DialogHeader>
 
           <div className="flex flex-col gap-4">
-            {/* Preview Section */}
-            <div className="w-full flex items-center justify-center bg-gray-100 rounded-lg overflow-hidden aspect-video">
-              {isImage && (
-                <img
-                  src={asset.url}
-                  alt={asset.filename}
-                  className="object-contain w-full h-full"
-                />
-              )}
-              {isVideo && (
-                <video
-                  src={asset.transcodedUrls?.['720p'] || asset.url}
-                  controls
-                  autoPlay
-                  className="w-full h-full object-contain"
-                />
-              )}
-              {isPdf && (
-                <iframe
-                  src={asset.url}
-                  className="w-full h-[600px]"
-                  title={asset.filename}
-                ></iframe>
-              )}
-              {!isImage && !isVideo && !isPdf && <span className="text-6xl">📦</span>}
-            </div>
+            {!isPdf && (
+              <div className="w-full flex items-center justify-center bg-gray-100 rounded-lg overflow-hidden aspect-video">
+                {isImage && (
+                  <img
+                    src={asset.url}
+                    alt={asset.filename}
+                    className="object-contain w-full h-full"
+                  />
+                )}
+                {isVideo && (
+                  <video
+                    src={asset.transcodedUrls?.['720p'] || asset.url}
+                    controls
+                    autoPlay
+                    className="w-full h-full object-contain"
+                  />
+                )}
+              </div>
+            )}
+            {isPdf && (
+              <div className="w-full h-[300px] border border-gray-300 rounded">
+                <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
+                  <Viewer fileUrl={asset.url} />
+                </Worker>
+              </div>
+            )}
 
-            {/* Meta Info */}
+            {!isImage && !isVideo && !isPdf && <span className="text-6xl">📦</span>}
+
             <div className="text-sm text-gray-600 space-y-1">
               <p>
                 <strong>Size:</strong> {(asset.size / 1024 / 1024).toFixed(2)} MB
@@ -96,11 +129,14 @@ export function AssetCard({ asset }: AssetCardProps) {
               )}
             </div>
 
-            {/* Actions */}
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setOpen(false)}>
                 Close
               </Button>
+              <Button variant="secondary" onClick={() => window.open(asset.url, '_blank')}>
+                Preview in Browser
+              </Button>
+
               <Button onClick={handleDownload}>
                 <Download className="w-4 h-4 mr-2" />
                 Download

@@ -41,4 +41,19 @@ export const assetsApi = {
     if (res?.data?.data) return res.data.data
     return res.data
   },
+  upload: async (files: File[]) => {
+    const formData = new FormData()
+    files.forEach((file) => {
+      formData.append('files', file)
+    })
+
+    const res = await api.post('/assets/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
+
+    if (res?.data?.data) return res.data.data
+    return res.data
+  },
 }
