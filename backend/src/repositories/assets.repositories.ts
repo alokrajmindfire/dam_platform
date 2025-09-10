@@ -11,10 +11,41 @@ export class AssetRepository {
     return await Asset.findById(id).exec();
   }
 
-  static async findMany(user_id: Schema.Types.ObjectId): Promise<IAsset[]> {
-    const assets = await Asset.find({ userId: user_id }).lean();
-    console.log('assets', assets);
-    return assets;
+  static async findMany(
+    user_id: Schema.Types.ObjectId,
+    filters?: {
+      search?: string;
+      type?: string;
+      status?: string;
+      tags?: string[];
+    },
+  ): Promise<IAsset[]> {
+    const q: any = { userId: user_id };
+
+    if (filters?.status) {
+      q.status = filters.status;
+    }
+
+    if (filters?.type) {
+      // match by mimeType containing type (e.g., 'video', 'image')
+      q.mimeType = { $regex: filters.type, $options: 'i' };
+    }
+
+    if (filters?.tags && filters.tags.length > 0) {
+      q.tags = { $in: filters.tags.map((t) => t.toLowerCase()) };
+    }
+
+    if (filters?.search && filters.search.trim().length > 0) {
+      const term = filters.search.trim();
+      q.$or = [
+        { originalName: { $regex: term, $options: 'i' } },
+        { filename: { $regex: term, $options: 'i' } },
+        { mimeType: { $regex: term, $options: 'i' } },
+        { tags: { $regex: term, $options: 'i' } },
+      ];
+    }
+
+    return Asset.find(q).lean();
   }
 
   static async updateThumbnailPath(

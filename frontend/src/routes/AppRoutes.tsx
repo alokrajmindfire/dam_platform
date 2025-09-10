@@ -2,6 +2,7 @@ import React, { lazy, Suspense } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { ProtectedRoute } from './ProtectedRoute'
+import { AssetGallery } from '@/pages/AssetGallery'
 
 const Layout = lazy(() => import('@/components/layout/Layout'))
 const Dashboard = lazy(() => import('@/pages/Dashboard'))
@@ -41,6 +42,7 @@ export const AppRoutes: React.FC = () => {
           }
         >
           <Route index element={<Dashboard />} />
+          <Route path="/gallery" element={<AssetGallery />} />
           <Route path="network-issue" element={<NetworkIssue />} />
         </Route>
         <Route path="*" element={<NotFound />} />

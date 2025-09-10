@@ -1,8 +1,11 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Home } from 'lucide-react'
+import { Home, Image } from 'lucide-react'
 
-const navigationItems = Object.freeze([{ path: '/', label: 'Dashboard', icon: Home }])
+export const navigationItems = Object.freeze([
+  { path: '/', label: 'Dashboard', icon: Home },
+  { path: '/gallery', label: 'Gallery', icon: Image },
+])
 
 export const DesktopNav: React.FC = () => {
   const location = useLocation()

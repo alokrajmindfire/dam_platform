@@ -6,12 +6,11 @@ import { useAuth } from '@/contexts/AuthContext'
 import { authApi } from '@/lib/api'
 import { toast } from 'sonner'
 import { useMutation } from '@tanstack/react-query'
+import { navigationItems } from './DesktopNav'
 
 interface MobileNavProps {
   setMobileOpen: React.Dispatch<React.SetStateAction<boolean>>
 }
-
-const navigationItems = Object.freeze([{ path: '/', label: 'Dashboard', icon: Home }])
 
 export const MobileNav: React.FC<MobileNavProps> = ({ setMobileOpen }) => {
   const location = useLocation()
