@@ -21,17 +21,16 @@ export const UserMenu: React.FC = () => {
   }, [logoutMutation])
 
   return (
-    <div className="flex items-center gap-3">
+    <>
       {user?.fullName && (
         <span className="hidden sm:block text-sm text-gray-600 dark:text-gray-400 truncate max-w-[120px]">
           {user.fullName}
         </span>
       )}
-      <ModeToggle />
       <Button variant="outline" size="sm" onClick={handleLogout} className="hidden sm:flex gap-2">
         <LogOut className="h-4 w-4" aria-hidden="true" />
         <span className="sr-only sm:not-sr-only">Logout</span>
       </Button>
-    </div>
+    </>
   )
 }
