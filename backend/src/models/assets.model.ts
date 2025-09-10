@@ -91,6 +91,12 @@ const AssetSchema = new Schema<IAsset>(
   { timestamps: true },
 );
 
+AssetSchema.index({ userId: 1, createdAt: -1 });
+AssetSchema.index({ userId: 1, tags: 1 });
+AssetSchema.index({ userId: 1, mimeType: 1, status: 1 });
+AssetSchema.index({ originalName: 1 });
+AssetSchema.index({ filename: 1 }, { unique: true });
+
 export const Asset: Model<IAsset> = mongoose.model<IAsset>(
   'Asset',
   AssetSchema,
