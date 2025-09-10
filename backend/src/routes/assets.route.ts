@@ -5,7 +5,7 @@ import {
   getAssets,
   getAssetsId,
   uploadAssets,
-} from '../controller/assets.controller';
+} from '../controllers/assets.controller';
 
 const allowedExt = [
   '.jpeg',

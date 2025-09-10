@@ -2,7 +2,7 @@ import { Queue } from 'bullmq';
 import IORedis from 'ioredis';
 import logger from '../utils/logger';
 
-const redisConnection = new IORedis(
+export const redisConnection = new IORedis(
   process.env.REDIS_HOST || 'redis://localhost:6379',
 );
 
