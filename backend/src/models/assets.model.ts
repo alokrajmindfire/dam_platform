@@ -56,7 +56,7 @@ const AssetSchema = new Schema<IAsset>(
     status: {
       type: String,
       enum: ['uploading', 'processing', 'ready', 'failed'],
-      default: 'uploading',
+      default: 'processing',
     },
     metadata: {
       width: Number,

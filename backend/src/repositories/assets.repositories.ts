@@ -1,5 +1,6 @@
 import { Schema } from 'mongoose';
 import { Asset, IAsset } from '../models/assets.model';
+import { FindManyFilters } from 'src/types/assets.types';
 
 export class AssetRepository {
   static async create(assetData: Partial<IAsset>): Promise<IAsset> {
@@ -13,29 +14,20 @@ export class AssetRepository {
 
   static async findMany(
     user_id: Schema.Types.ObjectId,
-    filters?: {
-      search?: string;
-      type?: string;
-      status?: string;
-      tags?: string[];
-    },
-  ): Promise<IAsset[]> {
+    filters: FindManyFilters = {},
+  ): Promise<{ data: IAsset[]; total: number }> {
     const q: any = { userId: user_id };
 
-    if (filters?.status) {
-      q.status = filters.status;
+    if (filters.filter && filters.filter.trim().length > 0) {
+      const f = filters.filter.trim();
+      q.$or = [
+        { mimeType: { $regex: f, $options: 'i' } },
+        { status: { $regex: f, $options: 'i' } },
+        { tags: { $regex: f, $options: 'i' } },
+      ];
     }
 
-    if (filters?.type) {
-      // match by mimeType containing type (e.g., 'video', 'image')
-      q.mimeType = { $regex: filters.type, $options: 'i' };
-    }
-
-    if (filters?.tags && filters.tags.length > 0) {
-      q.tags = { $in: filters.tags.map((t) => t.toLowerCase()) };
-    }
-
-    if (filters?.search && filters.search.trim().length > 0) {
+    if (filters.search && filters.search.trim().length > 0) {
       const term = filters.search.trim();
       q.$or = [
         { originalName: { $regex: term, $options: 'i' } },
@@ -45,7 +37,17 @@ export class AssetRepository {
       ];
     }
 
-    return Asset.find(q).lean();
+    const page = filters.page && filters.page > 0 ? filters.page : 1;
+    const limit = filters.limit && filters.limit > 0 ? filters.limit : 20;
+
+    const total = await Asset.countDocuments(q);
+    const data = await Asset.find(q)
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .lean();
+
+    return { data, total };
   }
 
   static async updateThumbnailPath(

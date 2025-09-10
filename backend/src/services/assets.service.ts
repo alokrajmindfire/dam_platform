@@ -2,9 +2,10 @@ import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
 import { AssetRepository } from '../repositories/assets.repositories';
 import { BUCKET_NAME, minioClient } from '../config/minio';
-import { Schema, Types } from 'mongoose';
+import mongoose, { Schema, Types } from 'mongoose';
 import { IAsset } from '../models/assets.model';
 import { assetProcessingQueue } from '../config/queue';
+import { FindManyFilters, IAssetType } from 'src/types/assets.types';
 
 export class AssetService {
   static async uploadAsset(
@@ -76,15 +77,21 @@ export class AssetService {
       7 * 24 * 60 * 60,
     );
   }
-  static async getAssetsUrl(user_id: Schema.Types.ObjectId, filters?: any) {
-    const assets = await AssetRepository.findMany(user_id, filters);
-
-    if (!assets || assets.length === 0) {
-      return [];
-    }
+  static async getAssetsUrl(
+    user_id: Schema.Types.ObjectId,
+    filters?: FindManyFilters,
+  ): Promise<{
+    data: (IAssetType & {
+      url: string;
+      thumbnailUrlSigned?: string;
+      transcodedUrls: Record<string, string>;
+    })[];
+    total: number;
+  }> {
+    const { data, total } = await AssetRepository.findMany(user_id, filters);
 
     const assetsWithUrls = await Promise.all(
-      assets.map(async (asset: any) => {
+      data.map(async (asset) => {
         const url = await minioClient.presignedGetObject(
           BUCKET_NAME,
           asset.storagePath,
@@ -122,7 +129,7 @@ export class AssetService {
       }),
     );
 
-    return assetsWithUrls;
+    return { data: assetsWithUrls, total };
   }
 
   private static generateTags(filename: string, mimeType: string): string[] {

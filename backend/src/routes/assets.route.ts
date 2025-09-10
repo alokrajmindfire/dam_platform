@@ -7,6 +7,29 @@ import {
   uploadAssets,
 } from '../controller/assets.controller';
 
+const allowedExt = [
+  '.jpeg',
+  '.jpg',
+  '.png',
+  '.webp',
+  '.mp4',
+  '.mov',
+  '.avi',
+  '.mkv',
+  '.pdf',
+];
+
+const allowedMime = [
+  'image/jpeg',
+  'image/png',
+  'image/gif',
+  'image/webp',
+  'video/mp4',
+  'video/quicktime',
+  'video/x-msvideo',
+  'video/x-matroska',
+  'application/pdf',
+];
 const router = Router();
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -14,12 +37,14 @@ const upload = multer({
     fileSize: 100 * 1024 * 1024,
   },
   fileFilter: (req, file, cb) => {
-    const allowedTypes = /jpeg|jpg|png|gif|webp|mp4|mov|avi|mkv|pdf|doc|docx/;
-    const extname = allowedTypes.test(file.originalname.toLowerCase());
-    const mimetype = allowedTypes.test(file.mimetype);
+    const ext = file.originalname
+      .toLowerCase()
+      .substring(file.originalname.lastIndexOf('.'));
+    const isExtAllowed = allowedExt.includes(ext);
+    const isMimeAllowed = allowedMime.includes(file.mimetype);
 
-    if (mimetype && extname) {
-      return cb(null, true);
+    if (isExtAllowed && isMimeAllowed) {
+      cb(null, true);
     } else {
       cb(new Error('Invalid file type'));
     }

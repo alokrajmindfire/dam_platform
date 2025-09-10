@@ -46,34 +46,26 @@ const getAssetsId = asyncHandler(
 const getAssets = asyncHandler(
   async (req: Request & { user?: IUser }, res: Response) => {
     const user = req.user;
-    if (!user) {
+    if (!user)
       return res.status(401).json(new ApiResponse(401, null, 'Unauthorized'));
-    }
 
-    // read filters from query params
-    const { search, type, status, tags } = req.query;
-    const tagsArr =
-      typeof tags === 'string' && tags.length
-        ? (tags as string)
-            .split(',')
-            .map((t) => t.trim())
-            .filter(Boolean)
-        : [];
+    const { search = '', filter = '', page = 1, limit = 6 } = req.query;
 
     const filters = {
-      search: typeof search === 'string' ? search : undefined,
-      type: typeof type === 'string' ? type : undefined,
-      status: typeof status === 'string' ? status : undefined,
-      tags: tagsArr,
+      search: typeof search === 'string' ? search.trim() : '',
+      filter: typeof filter === 'string' ? filter.trim() : '',
+      page: Number(page),
+      limit: Number(limit),
     };
 
-    const assets = await AssetService.getAssetsUrl(
+    const { data, total } = await AssetService.getAssetsUrl(
       user._id as Schema.Types.ObjectId,
       filters,
     );
+
     return res
       .status(200)
-      .json(new ApiResponse(200, assets, 'Assets found successfully'));
+      .json(new ApiResponse(200, { assets: data, total }, 'Assets retrieved'));
   },
 );
 
