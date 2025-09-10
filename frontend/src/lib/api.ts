@@ -1,6 +1,5 @@
 import type { User } from '@/types'
 import api, { setAuthToken } from './axios'
-import { handleApi } from './apiWrapper'
 
 export const authApi = {
   login: async (email: string, password: string): Promise<User> => {
