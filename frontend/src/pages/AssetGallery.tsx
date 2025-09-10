@@ -34,8 +34,8 @@ export function AssetGallery() {
   const lastPage = Math.ceil(total / 8) || 1
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row gap-4 sm:items-center">
+    <div>
+      <div className="flex flex-col sm:flex-row gap-4 sm:items-center mb-4">
         <input
           type="text"
           className="w-full sm:w-1/2 px-4 py-2 border rounded-md"
