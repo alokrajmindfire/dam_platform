@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useAssets } from '@/lib/queries'
 import { AssetCard } from '@/components/assets/AssetCard'
 import {
   Pagination,
@@ -17,8 +16,9 @@ import {
   SelectContent,
   SelectItem,
 } from '@/components/ui/select'
+import { useAssets } from '@/utils/queries'
 
-export function AssetGallery() {
+function AssetGallery() {
   const { assets, total, isLoading, searchAssets, changeFilter, filter, page, setPage } =
     useAssets()
 
@@ -99,3 +99,5 @@ export function AssetGallery() {
     </div>
   )
 }
+
+export default AssetGallery

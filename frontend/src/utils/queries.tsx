@@ -30,7 +30,6 @@ export function useAssets(): UseAssetsResult {
         page,
         limit: 8,
       }),
-    // staleTime: 60 * 1000,
   })
 
   const assets = data?.assets ?? []

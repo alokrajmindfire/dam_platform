@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
 import { FileText, Image, Video, Upload, CheckCircle2, X } from 'lucide-react'
-import { useUploadAssets } from '@/lib/queries'
+import { useUploadAssets } from '@/utils/queries'
 
 interface UploadFile {
   id: string

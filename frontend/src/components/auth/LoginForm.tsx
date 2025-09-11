@@ -1,40 +1,18 @@
 import React, { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
-import { useMutation } from '@tanstack/react-query'
+import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useAuth } from '@/contexts/AuthContext'
-import { authApi } from '@/lib/api'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
-import type { AxiosError } from 'axios'
 import { ModeToggle } from '../ui/mode-toggle'
+import { useloginMutation } from '@/utils/authQueries'
 
 const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const { login } = useAuth()
-  const navigate = useNavigate()
-
-  const loginMutation = useMutation({
-    mutationFn: ({ email, password }: { email: string; password: string }) =>
-      authApi.login(email, password),
-    onSuccess: (user) => {
-      login(user)
-      toast.success('Login successful!')
-      navigate('/')
-    },
-    onError: (error: unknown) => {
-      // console.log(error)
-      const err = error as AxiosError<{ message: string }>
-      // console.log(err);
-
-      const message = err.response?.data?.message || 'Login failed'
-      toast.error(message)
-    },
-  })
+  const loginMutation = useloginMutation()
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
