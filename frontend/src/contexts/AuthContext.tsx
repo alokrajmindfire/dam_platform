@@ -22,14 +22,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (storedUser && storedUser !== 'undefined') {
           const parsedUser = JSON.parse(storedUser)
-          // Validate user object structure
           if (parsedUser && typeof parsedUser === 'object') {
             setUser(parsedUser)
           }
         }
       } catch (error) {
         console.error('Failed to parse user from localStorage:', error)
-        // Clear corrupted data
         localStorage.removeItem('user')
       } finally {
         setLoading(false)
