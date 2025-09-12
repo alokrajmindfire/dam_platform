@@ -3,6 +3,7 @@ export interface User {
   email: string
   fullName: string
   role: string
+  profileVisibility: 'public' | 'private'
 }
 export type Team = {
   _id: string

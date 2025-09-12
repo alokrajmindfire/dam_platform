@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { assetsApi } from './api'
 import { useCallback, useState } from 'react'
 import type { Asset } from '@/types/asset'
+import { assetsApi } from '../apis/assetsApi'
 
 export interface UseAssetsResult {
   assets: Asset[]

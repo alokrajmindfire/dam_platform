@@ -1,11 +1,13 @@
-import { Home, Image } from 'lucide-react'
+import { Home, Image, User2 } from 'lucide-react'
 import { memo } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { cn } from '@/lib/utils'
+import { useAuth } from '@/contexts/AuthContext'
 
 export const navigationItems = Object.freeze([
   { path: '/', label: 'Dashboard', icon: Home },
   { path: '/gallery', label: 'Gallery', icon: Image },
+  { path: '/teams', label: 'Team', icon: User2, requiresAdmin: true },
 ])
 
 export const NavItem = memo<{
@@ -29,10 +31,12 @@ export const NavItem = memo<{
 
 export default function NavLinks() {
   const location = useLocation()
+  const { isAdmin } = useAuth()
 
+  const filteredItems = navigationItems.filter((item) => !item.requiresAdmin || isAdmin)
   return (
     <nav role="navigation" aria-label="Main navigation" className="hidden md:flex space-x-6">
-      {navigationItems.map((item) => (
+      {filteredItems.map((item) => (
         <NavItem key={item.path} item={item} isActive={location.pathname === item.path} />
       ))}
     </nav>

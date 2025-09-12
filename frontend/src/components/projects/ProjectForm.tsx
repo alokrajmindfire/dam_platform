@@ -10,8 +10,8 @@ import {
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { useTeams } from '@/utils/apis/teamQueries'
-import { useCreateProject } from '@/utils/apis/projectQueries'
+import { useTeams } from '@/utils/queries/teamQueries'
+import { useCreateProject } from '@/utils/queries/projectQueries'
 import { toast } from 'sonner'
 
 type FormValues = {
@@ -26,8 +26,10 @@ export const ProjectForm: React.FC = () => {
     defaultValues: { teamId: '', name: '', description: '' },
   })
   const create = useCreateProject()
-
+  const teamId = methods.watch('teamId')
+  const isDisabled = teamId === '0'
   const onSubmit = (vals: FormValues) => {
+    if (vals.teamId === '0') return
     create.mutate(vals, {
       onSuccess: () => {
         toast.success('Project created successfully!')
@@ -49,11 +51,12 @@ export const ProjectForm: React.FC = () => {
           rules={{ required: 'Team is required' }}
           render={({ field, fieldState }) => (
             <div>
-              <Select {...field} aria-label="Select Team">
+              <Select value={field.value} onValueChange={field.onChange}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select team" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="0">None</SelectItem>
                   {teams.map((t: any) => (
                     <SelectItem key={t._id} value={t._id}>
                       {t.name}
@@ -84,7 +87,7 @@ export const ProjectForm: React.FC = () => {
         </div>
 
         <div>
-          <Button type="submit" disabled={create.isPending}>
+          <Button type="submit" disabled={isDisabled || create.isPending}>
             {create.isPending ? 'Creating...' : 'Create Project'}
           </Button>
         </div>
