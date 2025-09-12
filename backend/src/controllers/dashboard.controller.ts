@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { asyncHandler } from '../utils/asyncHandler';
 import { ApiResponse } from '../utils/ApiResponse';
-import { DashboardService } from 'src/services/dashboard.service';
+import { DashboardService } from '../services/dashboard.service';
 
 export const getDashboardOverview = asyncHandler(
   async (req: Request, res: Response) => {

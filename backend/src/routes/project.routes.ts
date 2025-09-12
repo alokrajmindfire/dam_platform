@@ -1,10 +1,13 @@
 import { Router } from 'express';
-import { ProjectController } from '../controllers/project.controller';
-import { verifyJWT } from 'src/middleware/auth.middleware';
+import {
+  createProject,
+  getProjectsByTeam,
+} from '../controllers/project.controller';
+import { verifyJWT } from '../middleware/auth.middleware';
 
 const router = Router();
 
-router.post('/', verifyJWT, ProjectController.createProject);
-router.get('/team/:teamId', verifyJWT, ProjectController.getProjectsByTeam);
+router.post('/', verifyJWT, createProject);
+router.get('/team/:teamId', verifyJWT, getProjectsByTeam);
 
 export default router;

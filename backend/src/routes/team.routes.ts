@@ -1,24 +1,29 @@
 import { Router } from 'express';
 import { verifyJWT } from '../middleware/auth.middleware';
-import { requireTeamMembership } from 'src/middleware/team-auth.middleware';
-import { TeamController } from 'src/controllers/team.controller';
-import { requireAdmin } from 'src/middleware/role.middleware';
+// import { requireTeamMembership } from '../middleware/team-auth.middleware';
+import { requireAdmin } from '../middleware/role.middleware';
+import {
+  addMember,
+  createTeam,
+  getAllTeams,
+  getTeamAssets,
+} from '../controllers/team.controller';
 
 const router = Router();
 
-router.get('/', verifyJWT, TeamController.getAllTeams);
-router.post('/', verifyJWT, requireAdmin, TeamController.createTeam);
+router.get('/', verifyJWT, getAllTeams);
+router.post('/', verifyJWT, requireAdmin, createTeam);
 router.post(
   '/:teamId/members',
   verifyJWT,
-  requireTeamMembership('admin'),
-  TeamController.addMember,
+  // requireTeamMembership('admin'),
+  addMember,
 );
 router.get(
   '/:teamId/assets',
   verifyJWT,
-  requireTeamMembership('member'),
-  TeamController.getTeamAssets,
+  // requireTeamMembership('member'),
+  getTeamAssets,
 );
 
 export default router;

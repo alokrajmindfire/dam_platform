@@ -37,7 +37,4 @@ const getProjectsByTeam = asyncHandler(
   },
 );
 
-export const ProjectController = {
-  createProject,
-  getProjectsByTeam,
-};
+export { createProject, getProjectsByTeam };

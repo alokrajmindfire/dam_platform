@@ -1,4 +1,4 @@
-import { AssetRepository } from 'src/repositories/assets.repositories';
+import { AssetRepository } from '../repositories/assets.repositories';
 import { Asset } from '../models/assets.model';
 
 export class DashboardService {

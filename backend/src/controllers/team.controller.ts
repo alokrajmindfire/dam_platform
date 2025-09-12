@@ -3,8 +3,8 @@ import { asyncHandler } from '../utils/asyncHandler';
 import { ApiResponse } from '../utils/ApiResponse';
 import { TeamService } from '../services/team.service';
 import { Schema, Types } from 'mongoose';
-import { ApiError } from 'src/utils/ApiError';
-import { IUser } from 'src/models/user.model';
+import { ApiError } from '../utils/ApiError';
+import { IUser } from '../models/user.model';
 
 const createTeam = asyncHandler(
   async (req: Request & { user?: IUser }, res: Response) => {
@@ -69,9 +69,5 @@ const getAllTeams = asyncHandler(
       .json(new ApiResponse(200, teams, 'Team assets fetched successfully'));
   },
 );
-export const TeamController = {
-  createTeam,
-  addMember,
-  getTeamAssets,
-  getAllTeams,
-};
+
+export { createTeam, addMember, getTeamAssets, getAllTeams };
