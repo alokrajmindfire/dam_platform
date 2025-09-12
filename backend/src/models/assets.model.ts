@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document, Model, Types } from 'mongoose';
 
 export interface IAsset extends Document {
+  _id: Types.ObjectId;
   filename: string;
   originalName: string;
   mimeType: string;
@@ -22,6 +23,9 @@ export interface IAsset extends Document {
   description?: string;
   downloadCount: number;
   userId: Schema.Types.ObjectId;
+  teamId?: Schema.Types.ObjectId;
+  projectId?: Schema.Types.ObjectId;
+  channels?: string[];
 }
 
 const AssetSchema = new Schema<IAsset>(
@@ -86,6 +90,21 @@ const AssetSchema = new Schema<IAsset>(
       type: Schema.Types.ObjectId,
       ref: 'User',
       required: true,
+    },
+    channels: [
+      {
+        type: String,
+        trim: true,
+        lowercase: true,
+      },
+    ],
+    teamId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Team',
+    },
+    projectId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Project',
     },
   },
   { timestamps: true },

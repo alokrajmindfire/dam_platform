@@ -1,23 +1,29 @@
+// services/assets.service.ts
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
 import { AssetRepository } from '../repositories/assets.repositories';
 import { BUCKET_NAME, minioClient } from '../config/minio';
-import mongoose, { Schema, Types } from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 import { IAsset } from '../models/assets.model';
 import { assetProcessingQueue } from '../config/queue';
 import { FindManyFilters, IAssetType } from 'src/types/assets.types';
+import { ApiError } from '../utils/ApiError';
+
+type Owner = {
+  userId?: Schema.Types.ObjectId;
+  teamId?: Schema.Types.ObjectId;
+  projectId?: Schema.Types.ObjectId;
+  channels?: string[];
+};
 
 export class AssetService {
-  static async uploadAsset(
-    file: Express.Multer.File,
-    userId: Schema.Types.ObjectId,
-  ) {
+  static async uploadAsset(file: Express.Multer.File, owner: Owner) {
     try {
       const fileId = uuidv4();
       const fileExtension = path.extname(file.originalname);
       const filename = `${fileId}${fileExtension}`;
       const storagePath = `assets/${filename}`;
-      console.log('file', file);
+
       await minioClient.putObject(
         BUCKET_NAME,
         storagePath,
@@ -34,20 +40,26 @@ export class AssetService {
         originalName: file.originalname,
         mimeType: file.mimetype,
         size: file.size,
-        storagePath: storagePath,
-        userId: userId,
+        storagePath,
+        userId: owner.userId,
         tags: this.generateTags(file.originalname, file.mimetype),
         status: 'uploading',
+        channels: (owner.channels || []).map((c) => c.toLowerCase()),
+        teamId: owner.teamId,
+        projectId: owner.projectId,
       };
 
       const asset = await AssetRepository.create(assetData);
+
       await assetProcessingQueue.add(
         'process-asset',
         {
-          assetId: asset.id,
+          assetId: asset._id.toString(),
           storagePath,
           mimeType: file.mimetype,
           filename,
+          teamId: owner.teamId?.toString(),
+          projectId: owner.projectId?.toString(),
         },
         {
           priority: file.mimetype.startsWith('image/') ? 1 : 2,
@@ -58,6 +70,7 @@ export class AssetService {
           },
         },
       );
+
       return asset;
     } catch (error) {
       console.error('Asset upload failed:', error);
@@ -68,7 +81,7 @@ export class AssetService {
   static async getAssetUrl(assetId: string): Promise<string> {
     const asset = await AssetRepository.findById(assetId);
     if (!asset) {
-      throw new Error('Asset not found');
+      throw new ApiError(404, 'Asset not found');
     }
 
     return await minioClient.presignedGetObject(
@@ -77,9 +90,14 @@ export class AssetService {
       7 * 24 * 60 * 60,
     );
   }
+
   static async getAssetsUrl(
     user_id: Schema.Types.ObjectId,
-    filters?: FindManyFilters,
+    filters?: FindManyFilters & {
+      teamId?: string;
+      projectId?: string;
+      channels?: string[];
+    },
   ): Promise<{
     data: (IAssetType & {
       url: string;
@@ -88,7 +106,10 @@ export class AssetService {
     })[];
     total: number;
   }> {
-    const { data, total } = await AssetRepository.findMany(user_id, filters);
+    const { data, total } = await AssetRepository.findManyForUser(
+      user_id,
+      filters,
+    );
 
     const assetsWithUrls = await Promise.all(
       data.map(async (asset) => {
@@ -99,21 +120,26 @@ export class AssetService {
         );
 
         let thumbnailUrlSigned: string | undefined = undefined;
-        if (asset.thumbnailUrl) {
+        if ((asset as any).thumbnailUrl) {
           thumbnailUrlSigned = await minioClient.presignedGetObject(
             BUCKET_NAME,
-            asset.thumbnailUrl,
+            (asset as any).thumbnailUrl,
             7 * 24 * 60 * 60,
           );
         }
 
         const transcodedUrls: Record<string, string> = {};
-        if (asset.transcoded && typeof asset.transcoded === 'object') {
-          for (const [quality, path] of Object.entries(asset.transcoded)) {
-            if (path) {
+        if (
+          (asset as any).transcoded &&
+          typeof (asset as any).transcoded === 'object'
+        ) {
+          for (const [quality, p] of Object.entries(
+            (asset as any).transcoded,
+          )) {
+            if (p) {
               transcodedUrls[quality] = await minioClient.presignedGetObject(
                 BUCKET_NAME,
-                path as string,
+                p as string,
                 7 * 24 * 60 * 60,
               );
             }
@@ -133,7 +159,7 @@ export class AssetService {
   }
 
   private static generateTags(filename: string, mimeType: string): string[] {
-    const tags = [];
+    const tags: string[] = [];
 
     if (mimeType.startsWith('image/')) tags.push('image');
     else if (mimeType.startsWith('video/')) tags.push('video');
@@ -151,6 +177,6 @@ export class AssetService {
 
     tags.push(...nameWords.slice(0, 5));
 
-    return [...new Set(tags)];
+    return Array.from(new Set(tags));
   }
 }

@@ -14,11 +14,21 @@ const uploadAssets = asyncHandler(
       return res.status(400).json({ error: 'No files provided' });
     }
     const user = req.user;
+    const { teamId, projectId, channels } = req.body;
     if (!user) {
       throw new ApiError(404, 'User does not exist');
     }
     const uploadPromises = files.map((file) =>
-      AssetService.uploadAsset(file, user._id as Schema.Types.ObjectId),
+      AssetService.uploadAsset(file, {
+        userId: user._id as Schema.Types.ObjectId,
+        teamId: teamId || undefined,
+        projectId: projectId || undefined,
+        channels: channels
+          ? Array.isArray(channels)
+            ? channels
+            : channels.split(',').map((c: string) => c.trim().toLowerCase())
+          : [],
+      }),
     );
     const assets = await Promise.all(uploadPromises);
     console.log('assets', assets);
