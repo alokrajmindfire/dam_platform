@@ -46,11 +46,13 @@ export function AssetCard({ asset }: AssetCardProps) {
     }
   }
 
-  // console.log('asset', asset)
   return (
     <>
       <div
         onClick={() => setOpen(true)}
+        role="button"
+        tabIndex={0}
+        aria-label={`Open asset ${asset.originalName || asset.filename}`}
         className="cursor-pointer rounded-lg overflow-hidden shadow hover:shadow-md transition bg-gray-100 flex items-center justify-center aspect-[4/3]"
       >
         {asset.thumbnailUrlSigned ? (
@@ -60,24 +62,34 @@ export function AssetCard({ asset }: AssetCardProps) {
             className="object-cover w-full h-full"
           />
         ) : isImage ? (
-          <div className="flex flex-col items-center justify-center text-gray-600">
+          <div
+            className="flex flex-col items-center justify-center text-gray-600"
+            aria-label="Image asset placeholder"
+          >
             <span className="text-5xl">🖼️</span>
             <span className="text-sm mt-2 text-black">{asset.status}</span>
           </div>
         ) : isVideo ? (
-          <div className="flex flex-col items-center justify-center text-gray-600">
+          <div
+            className="flex flex-col items-center justify-center text-gray-600"
+            aria-label="Video asset placeholder"
+          >
             <span className="text-5xl">🎞️</span>
             <span className="text-sm mt-2 text-black">{asset.status}</span>
           </div>
         ) : isPdf ? (
-          <span className="text-5xl">📄</span>
+          <span className="text-5xl" aria-label="PDF document">
+            📄
+          </span>
         ) : (
-          <span className="text-5xl">📦</span>
+          <span className="text-5xl" aria-label="Generic file">
+            📦
+          </span>
         )}
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-4xl">
+        <DialogContent className="max-w-4xl" aria-describedby={`asset-details-${asset._id}`}>
           <DialogHeader>
             <DialogTitle>{asset.originalName || asset.filename}</DialogTitle>
           </DialogHeader>
@@ -88,7 +100,7 @@ export function AssetCard({ asset }: AssetCardProps) {
                 {isImage && (
                   <img
                     src={asset.url}
-                    alt={asset.filename}
+                    alt={`Preview of ${asset.filename}`}
                     className="object-contain w-full h-full"
                   />
                 )}
@@ -98,21 +110,29 @@ export function AssetCard({ asset }: AssetCardProps) {
                     controls
                     autoPlay
                     className="w-full h-full object-contain"
+                    aria-label={`Video preview of ${asset.filename}`}
                   />
                 )}
               </div>
             )}
             {isPdf && (
-              <div className="w-full h-[300px] border border-gray-300 rounded">
+              <div
+                className="w-full h-[300px] border border-gray-300 rounded"
+                aria-label="PDF preview"
+              >
                 <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
                   <Viewer fileUrl={asset.url} />
                 </Worker>
               </div>
             )}
 
-            {!isImage && !isVideo && !isPdf && <span className="text-6xl">📦</span>}
+            {!isImage && !isVideo && !isPdf && (
+              <span className="text-6xl" aria-label="File preview not available">
+                📦
+              </span>
+            )}
 
-            <div className="text-sm text-gray-600 space-y-1">
+            <div id={`asset-details-${asset._id}`} className="text-sm text-gray-600 space-y-1">
               <p>
                 <strong>Size:</strong> {(asset.size / 1024 / 1024).toFixed(2)} MB
               </p>
@@ -130,14 +150,24 @@ export function AssetCard({ asset }: AssetCardProps) {
             </div>
 
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setOpen(false)}>
+              <Button
+                variant="outline"
+                onClick={() => setOpen(false)}
+                aria-label="Close asset dialog"
+              >
                 Close
               </Button>
-              <Button variant="secondary" onClick={() => window.open(asset.url, '_blank')}>
+              <Button
+                variant="secondary"
+                onClick={() => window.open(asset.url, '_blank')}
+                aria-label="Preview asset in browser"
+              >
                 Preview in Browser
               </Button>
-
-              <Button onClick={handleDownload}>
+              <Button
+                onClick={handleDownload}
+                aria-label={`Download asset ${asset.originalName || asset.filename}`}
+              >
                 <Download className="w-4 h-4 mr-2" />
                 Download
               </Button>

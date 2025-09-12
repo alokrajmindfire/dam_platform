@@ -1,4 +1,6 @@
 import type { User } from '@/types'
+import { ROLES } from '@/utils/constants'
+import { hasRole } from '@/utils/helper'
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react'
 
 interface AuthContextType {
@@ -7,6 +9,7 @@ interface AuthContextType {
   logout: () => void
   isAuthenticated: boolean
   loading: boolean
+  isAdmin: boolean | '' | undefined
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -62,6 +65,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       logout,
       isAuthenticated: !!user,
       loading,
+      isAdmin: user?.role && hasRole(user.role, [ROLES.ADMIN]),
     }),
     [user, login, logout, loading],
   )

@@ -1,5 +1,5 @@
 import type { User } from '@/types'
-import api, { setAuthToken } from './axios'
+import api, { setAuthToken } from '../axios'
 
 export const authApi = {
   login: async (email: string, password: string): Promise<User> => {
@@ -40,12 +40,7 @@ export const assetsApi = {
     if (res?.data?.data) return res.data.data
     return res.data
   },
-  upload: async (files: File[]) => {
-    const formData = new FormData()
-    files.forEach((file) => {
-      formData.append('files', file)
-    })
-
+  upload: async (formData: FormData) => {
     const res = await api.post('/assets/upload', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',

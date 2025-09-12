@@ -13,13 +13,7 @@ export const useloginMutation = () => {
       authApi.login(email, password),
     onSuccess: (user) => {
       login(user)
-      toast.success('Login successful!')
       navigate('/')
-    },
-    onError: (error: unknown) => {
-      const err = error as AxiosError<{ message: string }>
-      const message = err.response?.data?.message || 'Login failed'
-      toast.error(message)
     },
   })
 }

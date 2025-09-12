@@ -56,7 +56,7 @@ export function useAssets(): UseAssetsResult {
     total,
     isLoading,
     searchAssets,
-    changeFilter, // new helper
+    changeFilter,
     refetch: reload,
     page,
     setPage,
@@ -68,9 +68,10 @@ export function useAssets(): UseAssetsResult {
 export const useUploadAssets = () => {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (files: File[]) => assetsApi.upload(files),
+    mutationFn: (formData: FormData) => assetsApi.upload(formData),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['transactions'] })
+      queryClient.invalidateQueries({ queryKey: ['assets'] })
+      queryClient.invalidateQueries({ queryKey: ['teams'] })
     },
 
     onError: (error) => {
