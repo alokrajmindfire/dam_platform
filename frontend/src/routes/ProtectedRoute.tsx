@@ -1,16 +1,17 @@
-import React from 'react'
+import React, { memo } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
+import InlineLoader from '@/components/layout/InlineLoader'
 
 interface ProtectedRouteProps {
   children: React.ReactNode
 }
 
-export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
+const ProtectedRoute: React.FC<ProtectedRouteProps> = memo(({ children }) => {
   const { isAuthenticated, loading } = useAuth()
 
   if (loading) {
-    return <div className="spinner">Loading...</div>
+    return <InlineLoader />
   }
 
   if (!isAuthenticated) {
@@ -18,4 +19,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   }
 
   return <>{children}</>
-}
+})
+
+ProtectedRoute.displayName = 'ProtectedRoute'
+export default ProtectedRoute

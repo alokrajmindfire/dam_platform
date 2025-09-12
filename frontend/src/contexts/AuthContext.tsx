@@ -1,5 +1,7 @@
 import type { User } from '@/types'
-import React, { createContext, useContext, useState, useEffect } from 'react'
+import { ROLES } from '@/utils/constants'
+import { hasRole } from '@/utils/helper'
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react'
 
 interface AuthContextType {
   user: User | null
@@ -7,6 +9,7 @@ interface AuthContextType {
   logout: () => void
   isAuthenticated: boolean
   loading: boolean
+  isAdmin: boolean | '' | undefined
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -16,44 +19,58 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user')
-
-    if (storedUser && storedUser !== 'undefined') {
+    const initializeAuth = async () => {
       try {
-        const parsedUser = JSON.parse(storedUser)
-        setUser(parsedUser)
+        const storedUser = localStorage.getItem('user')
+
+        if (storedUser && storedUser !== 'undefined') {
+          const parsedUser = JSON.parse(storedUser)
+          if (parsedUser && typeof parsedUser === 'object') {
+            setUser(parsedUser)
+          }
+        }
       } catch (error) {
         console.error('Failed to parse user from localStorage:', error)
+        localStorage.removeItem('user')
+      } finally {
+        setLoading(false)
       }
-    } else {
-      console.warn('No valid user found in localStorage')
     }
-    setLoading(false)
+
+    initializeAuth()
   }, [])
 
-  const login = (userData: User) => {
+  const login = useCallback((userData: User) => {
     setUser(userData)
-    localStorage.setItem('user', JSON.stringify(userData))
-  }
+    try {
+      localStorage.setItem('user', JSON.stringify(userData))
+    } catch (error) {
+      console.error('Failed to save user to localStorage:', error)
+    }
+  }, [])
 
-  const logout = () => {
+  const logout = useCallback(() => {
     setUser(null)
-    localStorage.removeItem('user')
-  }
+    try {
+      localStorage.removeItem('user')
+    } catch (error) {
+      console.error('Failed to remove user from localStorage:', error)
+    }
+  }, [])
 
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        login,
-        logout,
-        isAuthenticated: !!user,
-        loading,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+  const contextValue = useMemo(
+    () => ({
+      user,
+      login,
+      logout,
+      isAuthenticated: !!user,
+      loading,
+      isAdmin: user?.role && hasRole(user.role, [ROLES.ADMIN]),
+    }),
+    [user, login, logout, loading],
   )
+
+  return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
 }
 
 export const useAuth = () => {

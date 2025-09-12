@@ -3,12 +3,15 @@ import jwt, { SignOptions } from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import { ApiError } from '../utils/ApiError';
 
+type UserRole = 'user' | 'admin';
+
 export interface IUser extends Document {
   email: string;
   fullName: string;
   password: string;
   createdAt?: Date;
   updatedAt?: Date;
+  role: UserRole;
 
   isPasswordCorrect(password: string): Promise<boolean>;
   generateAccessToken(): string;
@@ -32,6 +35,12 @@ const userSchema: Schema<IUser> = new Schema(
     password: {
       type: String,
       required: [true, 'Password is required'],
+    },
+    role: {
+      type: String,
+      enum: ['user', 'admin'],
+      default: 'user',
+      required: true,
     },
   },
   {
@@ -68,6 +77,7 @@ userSchema.methods.generateAccessToken = function (): string {
       _id: this._id,
       email: this.email,
       fullName: this.fullName,
+      role: this.role,
     },
     secret as string,
     {

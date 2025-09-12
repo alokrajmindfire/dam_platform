@@ -1,137 +1,145 @@
-import React, { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
-import { useMutation } from '@tanstack/react-query'
+import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useAuth } from '@/contexts/AuthContext'
-import { authApi } from '@/lib/api'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
-import type { AxiosError } from 'axios'
+import { ModeToggle } from '../ui/mode-toggle'
+import { useRegisterMutation } from '@/utils/apis/authQueries'
+import { useForm } from 'react-hook-form'
+
+type RegisterValues = {
+  fullName: string
+  email: string
+  password: string
+  confirmPassword: string
+}
 
 const RegisterForm: React.FC = () => {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [fullName, setFullName] = useState('')
-  const { login } = useAuth()
-  const navigate = useNavigate()
-
-  const registerMutation = useMutation({
-    mutationFn: ({
-      email,
-      password,
-      fullName,
-    }: {
-      email: string
-      password: string
-      fullName: string
-    }) => authApi.register(email, password, fullName),
-    onSuccess: (user) => {
-      login(user)
-      toast.success('Registration successful!')
-      navigate('/')
-    },
-    onError: (error: unknown) => {
-      // console.log(error)
-      const err = error as AxiosError<{ message: string }>
-      // console.log(err);
-
-      const message = err.response?.data?.message || 'Login failed'
-      toast.error(message)
-    },
+  const {
+    register,
+    handleSubmit,
+    watch,
+    reset,
+    formState: { errors },
+  } = useForm<RegisterValues>({
+    defaultValues: { fullName: '', email: '', password: '', confirmPassword: '' },
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+  const registerMutation = useRegisterMutation()
 
-    if (!email || !password || !confirmPassword || !fullName) {
-      toast.error('Please fill in all fields')
-      return
-    }
-
-    if (password !== confirmPassword) {
+  const onSubmit = (data: RegisterValues) => {
+    if (data.password !== data.confirmPassword) {
       toast.error('Passwords do not match')
       return
     }
 
-    if (password.length < 6) {
-      toast.error('Password must be at least 6 characters')
-      return
-    }
-
-    registerMutation.mutate({ email, password, fullName })
+    registerMutation.mutate(
+      { email: data.email, password: data.password, fullName: data.fullName },
+      {
+        onSuccess: () => {
+          toast.success('Account created successfully!')
+          reset()
+        },
+        onError: (err: any) => {
+          toast.error(err?.message || 'Registration failed')
+        },
+      },
+    )
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center  py-12 px-4 sm:px-6 lg:px-8">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Create an account</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="fullName">Full Name</Label>
-              <Input
-                id="fullName"
-                type="text"
-                placeholder="Enter your fullname"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                disabled={registerMutation.isPending}
-              />
+    <div>
+      <div className="absolute top-4 right-4">
+        <ModeToggle />
+      </div>
+      <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <Card className="w-full max-w-md">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-2xl font-bold text-center">Create an account</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="fullName">Full Name</Label>
+                <Input
+                  id="fullName"
+                  placeholder="Enter your fullname"
+                  {...register('fullName', { required: 'Full name is required' })}
+                  disabled={registerMutation.isPending}
+                />
+                {errors.fullName && (
+                  <p className="text-sm text-red-500">{errors.fullName.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email"
+                  {...register('email', {
+                    required: 'Email is required',
+                    pattern: { value: /^\S+@\S+$/i, message: 'Invalid email address' },
+                  })}
+                  disabled={registerMutation.isPending}
+                />
+                {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="Create a password"
+                  {...register('password', {
+                    required: 'Password is required',
+                    minLength: { value: 6, message: 'Password must be at least 6 characters' },
+                  })}
+                  disabled={registerMutation.isPending}
+                />
+                {errors.password && (
+                  <p className="text-sm text-red-500">{errors.password.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  placeholder="Confirm your password"
+                  {...register('confirmPassword', {
+                    required: 'Please confirm your password',
+                    validate: (value) => value === watch('password') || 'Passwords do not match',
+                  })}
+                  disabled={registerMutation.isPending}
+                />
+                {errors.confirmPassword && (
+                  <p className="text-sm text-red-500">{errors.confirmPassword.message}</p>
+                )}
+              </div>
+
+              <Button type="submit" className="w-full" disabled={registerMutation.isPending}>
+                {registerMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Create Account
+              </Button>
+            </form>
+
+            <div className="mt-6 text-center">
+              <p className="text-sm text-gray-600">
+                Already have an account?{' '}
+                <Link to="/login" className="font-medium text-blue-600 hover:text-blue-500">
+                  Sign in
+                </Link>
+              </p>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={registerMutation.isPending}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Create a password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={registerMutation.isPending}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                placeholder="Confirm your password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                disabled={registerMutation.isPending}
-              />
-            </div>
-            <Button type="submit" className="w-full" disabled={registerMutation.isPending}>
-              {registerMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Create Account
-            </Button>
-          </form>
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
-              Already have an account?{' '}
-              <Link to="/login" className="font-medium text-blue-600 hover:text-blue-500">
-                Sign in
-              </Link>
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

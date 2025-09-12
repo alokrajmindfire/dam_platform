@@ -8,7 +8,8 @@
     "lint:backend": "cd backend && npm run lint",
     "format:frontend": "cd frontend && npm run format",
     "format:backend": "cd backend && npm run format",
+    "format:asset-worker": "cd asset-worker && npm run format",
     "lint:all": "npm run lint:frontend && npm run lint:backend",
-    "test": "npm run format:frontend && npm run format:backend"
+    "test": "npm run format:frontend && npm run format:backend && npm run format:asset-worker"
   }
 }
