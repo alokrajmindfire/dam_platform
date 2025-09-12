@@ -32,7 +32,7 @@ const addMember = asyncHandler(
     if (!user) {
       throw new ApiError(404, 'User does not exist');
     }
-    //   const ownerId = user._id as Schema.Types.ObjectId;
+
     const updatedTeam = await TeamService.addMember(teamId, userId, role);
 
     return res
@@ -59,15 +59,25 @@ const getTeamAssets = asyncHandler(
 );
 const getAllTeams = asyncHandler(
   async (req: Request & { user?: IUser }, res: Response) => {
-    const user = req.user;
-    if (!user) {
+    const userId = req.user?._id as string;
+    if (!userId) {
       throw new ApiError(404, 'User does not exist');
     }
-    const teams = await TeamService.getAllTeams();
+    const teams = await TeamService.getAllTeams(userId);
     return res
       .status(200)
-      .json(new ApiResponse(200, teams, 'Team assets fetched successfully'));
+      .json(new ApiResponse(200, teams, 'Teams fetched successfully'));
   },
 );
+const getTeamMembers = asyncHandler(
+  async (req: Request & { user?: IUser }, res: Response) => {
+    const { teamId } = req.params;
+    const team = await TeamService.getTeamMembers(teamId);
+    if (!team) return res.status(404).json({ message: 'Team not found' });
 
-export { createTeam, addMember, getTeamAssets, getAllTeams };
+    return res
+      .status(200)
+      .json(new ApiResponse(200, team.members, 'Member fetched successfully'));
+  },
+);
+export { createTeam, addMember, getTeamAssets, getAllTeams, getTeamMembers };

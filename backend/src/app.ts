@@ -7,6 +7,7 @@ import express, {
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import authRoute from './routes/auth.route';
+import userRoute from './routes/user.route';
 import assetsRouter from './routes/assets.route';
 import teamRouter from './routes/team.routes';
 import projectRouter from './routes/project.routes';
@@ -53,6 +54,7 @@ app.get('/api/health', (req, res) => {
   });
 });
 app.use('/api/auth', authRoute);
+app.use('/api/', userRoute);
 app.use('/api/assets', assetsRouter);
 app.use('/api/dashboard', dashboardRouter);
 app.use('/api/projects', projectRouter);

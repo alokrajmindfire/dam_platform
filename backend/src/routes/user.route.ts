@@ -1,9 +1,6 @@
 import { Router } from 'express';
 
 import {
-  loginUser,
-  logoutUser,
-  registerUser,
   getPublicUsers,
   updateProfileVisibility,
 } from '../controllers/user.controller';
@@ -11,14 +8,8 @@ import { verifyJWT } from '../middleware/auth.middleware';
 
 const router = Router();
 
-router.route('/register').post(registerUser);
-
-router.route('/login').post(loginUser);
-
-router.route('/logout').post(verifyJWT, logoutUser);
-
 router.get('/users/public', verifyJWT, getPublicUsers);
 
-router.patch('/users/:id/visibility', verifyJWT, updateProfileVisibility);
+router.patch('/users/visibility', verifyJWT, updateProfileVisibility);
 
 export default router;

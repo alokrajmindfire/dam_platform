@@ -22,7 +22,7 @@ export class TeamService {
   static async addMember(
     teamId: string,
     userId: Schema.Types.ObjectId,
-    role: 'admin' | 'member' = 'member',
+    role: string,
   ) {
     const team = await TeamRepository.findById(teamId);
     if (!team) throw new ApiError(404, 'Team not found');
@@ -45,8 +45,12 @@ export class TeamService {
     });
     return { data, total };
   }
-  static async getAllTeams() {
-    const teams = await TeamRepository.getAllTeams();
+  static async getAllTeams(userId: string) {
+    const teams = await TeamRepository.getAllTeams(userId);
     return teams;
+  }
+  static async getTeamMembers(teamId: string) {
+    const team = await TeamRepository.getTeamMembers(teamId);
+    return team;
   }
 }

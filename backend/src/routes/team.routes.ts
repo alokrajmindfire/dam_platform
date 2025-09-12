@@ -7,6 +7,7 @@ import {
   createTeam,
   getAllTeams,
   getTeamAssets,
+  getTeamMembers,
 } from '../controllers/team.controller';
 
 const router = Router();
@@ -25,5 +26,10 @@ router.get(
   // requireTeamMembership('member'),
   getTeamAssets,
 );
-
+router.get(
+  '/:teamId/members',
+  verifyJWT,
+  // requireTeamMembership('member'),
+  getTeamMembers,
+);
 export default router;

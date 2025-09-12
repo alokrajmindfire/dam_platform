@@ -24,4 +24,13 @@ export class UserRepository {
   static async selectWithoutPassword(userId: string) {
     return User.findById(userId).select('-password');
   }
+  static async getPublicUsers() {
+    return User.find({ profileVisibility: 'public' }, 'name email role');
+  }
+  static async updateProfileVisibility(
+    id: string,
+    profileVisibility: 'public' | 'private',
+  ) {
+    return User.findByIdAndUpdate(id, { profileVisibility }, { new: true });
+  }
 }
