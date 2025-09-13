@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document, Model, Types } from 'mongoose';
 
 export interface IAsset extends Document {
+  _id: Types.ObjectId;
   filename: string;
   originalName: string;
   mimeType: string;
@@ -14,7 +15,7 @@ export interface IAsset extends Document {
     height?: number;
     duration?: number;
   };
-  transcoded: {
+  transcoded?: {
     '1080p': string;
     '720p': string;
   };
@@ -22,6 +23,9 @@ export interface IAsset extends Document {
   description?: string;
   downloadCount: number;
   userId: Schema.Types.ObjectId;
+  teamId?: Schema.Types.ObjectId;
+  projectId?: Schema.Types.ObjectId;
+  channels?: string[];
 }
 
 const AssetSchema = new Schema<IAsset>(
@@ -56,7 +60,7 @@ const AssetSchema = new Schema<IAsset>(
     status: {
       type: String,
       enum: ['uploading', 'processing', 'ready', 'failed'],
-      default: 'uploading',
+      default: 'processing',
     },
     metadata: {
       width: Number,
@@ -87,9 +91,30 @@ const AssetSchema = new Schema<IAsset>(
       ref: 'User',
       required: true,
     },
+    channels: [
+      {
+        type: String,
+        trim: true,
+        lowercase: true,
+      },
+    ],
+    teamId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Team',
+    },
+    projectId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Project',
+    },
   },
   { timestamps: true },
 );
+
+AssetSchema.index({ userId: 1, createdAt: -1 });
+AssetSchema.index({ userId: 1, tags: 1 });
+AssetSchema.index({ userId: 1, mimeType: 1, status: 1 });
+AssetSchema.index({ originalName: 1 });
+AssetSchema.index({ filename: 1 }, { unique: true });
 
 export const Asset: Model<IAsset> = mongoose.model<IAsset>(
   'Asset',
