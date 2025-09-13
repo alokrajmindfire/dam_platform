@@ -1,10 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/contexts/AuthContext'
-import { authApi } from '@/utils/apis/userApi'
-import { useMutation } from '@tanstack/react-query'
 import { LogOut } from 'lucide-react'
 import { useCallback, useState } from 'react'
-import { toast } from 'sonner'
 import {
   DropdownMenu,
   DropdownMenuContent,

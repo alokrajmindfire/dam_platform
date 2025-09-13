@@ -23,10 +23,6 @@ export const teamApi = {
     const res = await api.get(`/teams/${teamId}`)
     return res.data.data
   },
-  getAssets: async (teamId: string, params?: any) => {
-    const res = await api.get(`/teams/${teamId}/assets`, { params })
-    return res.data.data
-  },
   getMembers: async (teamId: string) => {
     const res = await api.get(`/teams/${teamId}/members`)
     return res.data.data

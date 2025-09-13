@@ -21,4 +21,14 @@ export const assetsApi = {
     if (res?.data?.data) return res.data.data
     return res.data
   },
+  incrementDownload: async (id: string) => {
+    const res = await api.patch(`/assets/download/${id}`)
+    if (res?.data?.data) return res.data.data
+    return res.data
+  },
+  deleteAsset: async (id: string) => {
+    const res = await api.delete(`/assets/${id}`)
+    if (res?.data?.data) return res.data.data
+    return res.data
+  },
 }
