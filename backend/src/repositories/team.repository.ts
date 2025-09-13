@@ -1,4 +1,4 @@
-import { ApiError } from 'src/utils/ApiError';
+import { ApiError } from '../utils/ApiError';
 import { Team, ITeam } from '../models/team.model';
 import { Types, Schema } from 'mongoose';
 

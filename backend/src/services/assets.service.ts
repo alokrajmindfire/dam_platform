@@ -5,7 +5,7 @@ import { BUCKET_NAME, minioClient } from '../config/minio';
 import { Schema } from 'mongoose';
 import { IAsset } from '../models/assets.model';
 import { assetProcessingQueue } from '../config/queue';
-import { FindManyFilters } from 'src/types/assets.types';
+import { FindManyFilters } from '../types/assets.types';
 import { ApiError } from '../utils/ApiError';
 
 type Owner = {

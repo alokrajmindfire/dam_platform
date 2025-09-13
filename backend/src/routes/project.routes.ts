@@ -4,7 +4,7 @@ import {
   getProjectsByTeam,
 } from '../controllers/project.controller';
 import { verifyJWT } from '../middleware/auth.middleware';
-import { requireAdmin } from 'src/middleware/role.middleware';
+import { requireAdmin } from '../middleware/role.middleware';
 
 const router = Router();
 

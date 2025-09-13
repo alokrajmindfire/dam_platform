@@ -1,6 +1,6 @@
 import { Schema } from 'mongoose';
 import { Asset, IAsset } from '../models/assets.model';
-import { FindManyFilters } from 'src/types/assets.types';
+import { FindManyFilters } from '../types/assets.types';
 import { Team } from '../models/team.model';
 import { ApiError } from '../utils/ApiError';
 

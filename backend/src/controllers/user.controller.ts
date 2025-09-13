@@ -7,7 +7,7 @@ import {
   loginUserSchema,
   updateVisibilitySchema,
 } from '../validations/user.validation';
-import { IUser } from 'src/models/user.model';
+import { IUser } from '../models/user.model';
 
 const registerUser = asyncHandler(async (req: Request, res: Response) => {
   const parsedData = registerUserSchema.parse(req.body);
