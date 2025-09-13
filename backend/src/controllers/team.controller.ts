@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { asyncHandler } from '../utils/asyncHandler';
 import { ApiResponse } from '../utils/ApiResponse';
 import { TeamService } from '../services/team.service';
-import { Schema, Types } from 'mongoose';
+import { Schema } from 'mongoose';
 import { ApiError } from '../utils/ApiError';
 import { IUser } from '../models/user.model';
 
@@ -40,23 +40,6 @@ const addMember = asyncHandler(
       .json(new ApiResponse(200, updatedTeam, 'Member added successfully'));
   },
 );
-
-const getTeamAssets = asyncHandler(
-  async (req: Request & { user?: IUser }, res: Response) => {
-    const { teamId } = req.params;
-    const user = req.user;
-    if (!user) {
-      throw new ApiError(404, 'User does not exist');
-    }
-    const userId = user._id as Schema.Types.ObjectId;
-
-    const assets = await TeamService.getTeamAssets(teamId, userId);
-
-    return res
-      .status(200)
-      .json(new ApiResponse(200, assets, 'Team assets fetched successfully'));
-  },
-);
 const getAllTeams = asyncHandler(
   async (req: Request & { user?: IUser }, res: Response) => {
     const userId = req.user?._id as string;
@@ -80,4 +63,4 @@ const getTeamMembers = asyncHandler(
       .json(new ApiResponse(200, team.members, 'Member fetched successfully'));
   },
 );
-export { createTeam, addMember, getTeamAssets, getAllTeams, getTeamMembers };
+export { createTeam, addMember, getAllTeams, getTeamMembers };

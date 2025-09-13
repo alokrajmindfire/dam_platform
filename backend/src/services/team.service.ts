@@ -1,6 +1,5 @@
 import { TeamRepository } from '../repositories/team.repository';
 import { ApiError } from '../utils/ApiError';
-import { AssetRepository } from '../repositories/assets.repositories';
 import { Schema } from 'mongoose';
 
 export class TeamService {
@@ -29,21 +28,6 @@ export class TeamService {
 
     const updated = await TeamRepository.addMember(teamId, userId, role);
     return updated;
-  }
-
-  static async getTeamAssets(teamId: string, userId: Schema.Types.ObjectId) {
-    const team = await TeamRepository.findById(teamId);
-    if (!team) throw new ApiError(404, 'Team not found');
-
-    const isMember = team.members.some(
-      (m) => m.userId.toString() === userId.toString(),
-    );
-    if (!isMember) throw new ApiError(403, 'Not authorized for this team');
-
-    const { data, total } = await AssetRepository.findManyForUser(userId, {
-      teamId,
-    });
-    return { data, total };
   }
   static async getAllTeams(userId: string) {
     const teams = await TeamRepository.getAllTeams(userId);

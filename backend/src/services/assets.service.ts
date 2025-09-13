@@ -1,12 +1,11 @@
-// services/assets.service.ts
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
 import { AssetRepository } from '../repositories/assets.repositories';
 import { BUCKET_NAME, minioClient } from '../config/minio';
-import mongoose, { Schema } from 'mongoose';
+import { Schema } from 'mongoose';
 import { IAsset } from '../models/assets.model';
 import { assetProcessingQueue } from '../config/queue';
-import { FindManyFilters, IAssetType } from 'src/types/assets.types';
+import { FindManyFilters } from 'src/types/assets.types';
 import { ApiError } from '../utils/ApiError';
 
 type Owner = {
@@ -92,22 +91,16 @@ export class AssetService {
   }
 
   static async getAssetsUrl(
-    user_id: Schema.Types.ObjectId,
+    userId: Schema.Types.ObjectId,
     filters?: FindManyFilters & {
       teamId?: string;
       projectId?: string;
       channels?: string[];
+      date?: string;
     },
-  ): Promise<{
-    data: (IAssetType & {
-      url: string;
-      thumbnailUrlSigned?: string;
-      transcodedUrls: Record<string, string>;
-    })[];
-    total: number;
-  }> {
+  ) {
     const { data, total } = await AssetRepository.findManyForUser(
-      user_id,
+      userId,
       filters,
     );
 
@@ -119,7 +112,7 @@ export class AssetService {
           7 * 24 * 60 * 60,
         );
 
-        let thumbnailUrlSigned: string | undefined = undefined;
+        let thumbnailUrlSigned;
         if ((asset as any).thumbnailUrl) {
           thumbnailUrlSigned = await minioClient.presignedGetObject(
             BUCKET_NAME,
@@ -133,31 +126,32 @@ export class AssetService {
           (asset as any).transcoded &&
           typeof (asset as any).transcoded === 'object'
         ) {
-          for (const [quality, p] of Object.entries(
+          for (const [quality, path] of Object.entries(
             (asset as any).transcoded,
           )) {
-            if (p) {
+            if (path) {
               transcodedUrls[quality] = await minioClient.presignedGetObject(
                 BUCKET_NAME,
-                p as string,
+                path as string,
                 7 * 24 * 60 * 60,
               );
             }
           }
         }
 
-        return {
-          ...asset,
-          url,
-          thumbnailUrlSigned,
-          transcodedUrls,
-        };
+        return { ...asset, url, thumbnailUrlSigned, transcodedUrls };
       }),
     );
 
     return { data: assetsWithUrls, total };
   }
 
+  static async incrementDownloadCount(assetId: string): Promise<void> {
+    return await AssetRepository.incrementDownloadCount(assetId);
+  }
+  static async delete(assetId: string, userId: string): Promise<boolean> {
+    return await AssetRepository.delete(assetId, userId);
+  }
   private static generateTags(filename: string, mimeType: string): string[] {
     const tags: string[] = [];
 

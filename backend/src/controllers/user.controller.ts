@@ -8,7 +8,6 @@ import {
   updateVisibilitySchema,
 } from '../validations/user.validation';
 import { IUser } from 'src/models/user.model';
-import { ApiError } from 'src/utils/ApiError';
 
 const registerUser = asyncHandler(async (req: Request, res: Response) => {
   const parsedData = registerUserSchema.parse(req.body);
@@ -48,7 +47,7 @@ const loginUser = asyncHandler(async (req: Request, res: Response) => {
     );
 });
 
-const logoutUser = asyncHandler(async (req: Request, res: Response) => {
+const logoutUser = asyncHandler(async (_: Request, res: Response) => {
   const options = { httpOnly: true, secure: true };
   return res
     .status(200)
@@ -56,7 +55,7 @@ const logoutUser = asyncHandler(async (req: Request, res: Response) => {
     .json(new ApiResponse(200, {}, 'User logged out successfully'));
 });
 
-const getPublicUsers = asyncHandler(async (req: Request, res: Response) => {
+const getPublicUsers = asyncHandler(async (_: Request, res: Response) => {
   const user = await UserService.getPublicUsers();
   return res
     .status(200)

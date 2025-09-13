@@ -5,6 +5,6 @@ import { getDashboardOverview } from '../controllers/dashboard.controller';
 
 const router = Router();
 
-router.get('/overview', verifyJWT, requireAdmin, getDashboardOverview);
+router.get('/admin/dashboard', verifyJWT, requireAdmin, getDashboardOverview);
 
 export default router;

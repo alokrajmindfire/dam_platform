@@ -1,9 +1,4 @@
-import express, {
-  ErrorRequestHandler,
-  NextFunction,
-  Request,
-  Response,
-} from 'express';
+import express, { NextFunction, Request, Response } from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import authRoute from './routes/auth.route';
@@ -43,7 +38,7 @@ app.use(
   swaggerUi.setup(swaggerSpec, swaggerUiOptions),
 );
 
-app.get('/api/health', (req, res) => {
+app.get('/api/health', (_, res) => {
   res.status(200).json({
     status: 'OK',
     timestamp: new Date().toISOString(),
@@ -56,10 +51,10 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth', authRoute);
 app.use('/api/', userRoute);
 app.use('/api/assets', assetsRouter);
-app.use('/api/dashboard', dashboardRouter);
+app.use('/api/', dashboardRouter);
 app.use('/api/projects', projectRouter);
 app.use('/api/teams', teamRouter);
-app.use((req: Request, res: Response, next: NextFunction) => {
+app.use((req: Request, _: Response, next: NextFunction) => {
   const error = new Error(`Route not found - ${req.originalUrl}`);
   (error as any).statusCode = 404;
   (error as any).isOperational = true;

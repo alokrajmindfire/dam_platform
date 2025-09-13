@@ -2,8 +2,10 @@ import { Router } from 'express';
 import { verifyJWT } from '../middleware/auth.middleware';
 import multer from 'multer';
 import {
+  deleteAsset,
   getAssets,
   getAssetsId,
+  updateAssetsDownloadCount,
   uploadAssets,
 } from '../controllers/assets.controller';
 
@@ -36,7 +38,7 @@ const upload = multer({
   limits: {
     fileSize: 100 * 1024 * 1024,
   },
-  fileFilter: (req, file, cb) => {
+  fileFilter: (_, file, cb) => {
     const ext = file.originalname
       .toLowerCase()
       .substring(file.originalname.lastIndexOf('.'));
@@ -56,5 +58,7 @@ router
   .post(verifyJWT, upload.array('files', 10), uploadAssets);
 router.route('/').get(verifyJWT, getAssets);
 router.route('/:id').get(verifyJWT, getAssetsId);
+router.route('/download/:id').patch(verifyJWT, updateAssetsDownloadCount);
+router.route('/:id').delete(verifyJWT, deleteAsset);
 
 export default router;

@@ -1,4 +1,5 @@
-import { Team, ITeam, ITeamMember } from '../models/team.model';
+import { ApiError } from 'src/utils/ApiError';
+import { Team, ITeam } from '../models/team.model';
 import { Types, Schema } from 'mongoose';
 
 export class TeamRepository {
@@ -8,6 +9,12 @@ export class TeamRepository {
     ownerId: Schema.Types.ObjectId;
     role?: string;
   }): Promise<ITeam> {
+    const existingTeam = await Team.findOne({ 'members.userId': data.ownerId });
+
+    if (existingTeam) {
+      throw new ApiError(400, 'User is already a member of a team');
+    }
+
     return Team.create({
       name: data.name,
       description: data.description,
@@ -32,7 +39,6 @@ export class TeamRepository {
     ).populate('members.userId', 'name email');
   }
 
-  // Find a team by ID
   static async findById(teamId: string): Promise<ITeam | null> {
     return Team.findById(new Types.ObjectId(teamId)).populate(
       'members.userId',
@@ -40,7 +46,6 @@ export class TeamRepository {
     );
   }
 
-  // Get all teams for a user (either owner or member)
   static async getAllTeams(userId: string): Promise<ITeam[]> {
     const objectId = new Types.ObjectId(userId);
 
@@ -49,7 +54,6 @@ export class TeamRepository {
     }).populate('members.userId', 'name email');
   }
 
-  // Get all members of a team
   static async getTeamMembers(teamId: string): Promise<ITeam | null> {
     return Team.findById(new Types.ObjectId(teamId)).populate(
       'members.userId',

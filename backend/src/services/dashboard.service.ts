@@ -1,4 +1,3 @@
-import { AssetRepository } from '../repositories/assets.repositories';
 import { Asset } from '../models/assets.model';
 
 export class DashboardService {
@@ -6,6 +5,7 @@ export class DashboardService {
     const totalAssets = await Asset.countDocuments();
 
     const uploadCounts = await Asset.aggregate([
+      { $match: { createdAt: { $exists: true } } },
       {
         $group: {
           _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
@@ -15,7 +15,7 @@ export class DashboardService {
       { $sort: { _id: 1 } },
     ]);
 
-    const downloadCounts = await AssetRepository.aggregate([
+    const downloadCounts = await Asset.aggregate([
       {
         $group: {
           _id: null,
@@ -26,26 +26,17 @@ export class DashboardService {
 
     const latestAssets = await Asset.find()
       .sort({ createdAt: -1 })
-      .limit(10)
-      .select('filename originalName mimeType createdAt');
-
-    const breakdownByType = await Asset.aggregate([
-      {
-        $group: {
-          _id: {
-            $substr: ['$mimeType', 0, { $indexOfBytes: ['$mimeType', '/'] }],
-          },
-          count: { $sum: 1 },
-        },
-      },
-    ]);
+      .limit(6)
+      .select(
+        'filename originalName mimeType createdAt downloadCount tags status',
+      );
 
     return {
       totalAssets,
       uploadCounts,
-      totalDownloads: downloadCounts[0]?.totalDownloads || 0,
+      totalDownloads:
+        downloadCounts.length > 0 ? downloadCounts[0].totalDownloads : 0,
       latestAssets,
-      breakdownByType,
     };
   }
 }

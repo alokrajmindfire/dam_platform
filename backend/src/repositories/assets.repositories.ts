@@ -15,79 +15,84 @@ export class AssetRepository {
   }
 
   static async findManyForUser(
-    user_id: Schema.Types.ObjectId,
+    userId: Schema.Types.ObjectId,
     filters: FindManyFilters & {
       teamId?: string;
       projectId?: string;
       channels?: string[];
+      role?: string;
+      date?: string;
     } = {},
-  ): Promise<{ data: IAsset[]; total: number }> {
-    const allowedTeamIds = await Team.find({
-      'members.userId': user_id,
-    }).distinct('_id');
-
+  ) {
+    const isAdmin = filters.role === 'admin';
     const q: any = {};
 
-    if (filters.teamId) {
-      const teamAllowed = allowedTeamIds.map(String).includes(filters.teamId);
-      if (!teamAllowed) {
-        throw new ApiError(403, 'Not a member of the requested team');
+    if (!isAdmin) {
+      const allowedTeamIds = await Team.find({
+        'members.userId': userId,
+      }).distinct('_id');
+
+      if (filters.teamId) {
+        if (!allowedTeamIds.map(String).includes(filters.teamId)) {
+          throw new ApiError(403, 'Not a member of the requested team');
+        }
+        q.teamId = filters.teamId;
+        if (filters.projectId) q.projectId = filters.projectId;
+      } else {
+        q.$or = [{ userId }, { teamId: { $in: allowedTeamIds } }];
+
+        if (filters.projectId) {
+          q.$or = [
+            { userId },
+            { teamId: { $in: allowedTeamIds }, projectId: filters.projectId },
+          ];
+        }
       }
-      q.teamId = filters.teamId;
-      if (filters.projectId) q.projectId = filters.projectId;
     } else {
-      q.$or = [{ userId: user_id }, { teamId: { $in: allowedTeamIds } }];
-      if (filters.projectId) {
-        q.$or = [
-          { userId: user_id },
-          { teamId: { $in: allowedTeamIds }, projectId: filters.projectId },
-        ];
-      }
+      if (filters.teamId) q.teamId = filters.teamId;
+      if (filters.projectId) q.projectId = filters.projectId;
     }
 
-    if (
-      filters.channels &&
-      Array.isArray(filters.channels) &&
-      filters.channels.length > 0
-    ) {
+    if (filters.channels?.length) {
       q.channels = { $in: filters.channels.map((c) => c.toLowerCase()) };
     }
 
-    if (
-      filters.filter &&
-      typeof filters.filter === 'string' &&
-      filters.filter.trim().length > 0
-    ) {
-      const f = filters.filter.trim();
+    if (filters.filter) {
       q.$and = q.$and || [];
       q.$and.push({
         $or: [
-          { mimeType: { $regex: f, $options: 'i' } },
-          { status: { $regex: f, $options: 'i' } },
-          { tags: { $regex: f, $options: 'i' } },
-          { channels: { $regex: f, $options: 'i' } },
+          { mimeType: { $regex: filters.filter, $options: 'i' } },
+          { status: { $regex: filters.filter, $options: 'i' } },
+          { tags: { $regex: filters.filter, $options: 'i' } },
+          { channels: { $regex: filters.filter, $options: 'i' } },
         ],
       });
     }
 
-    if (
-      filters.search &&
-      typeof filters.search === 'string' &&
-      filters.search.trim().length > 0
-    ) {
-      const term = filters.search.trim();
+    if (filters.search) {
       q.$and = q.$and || [];
       q.$and.push({
         $or: [
-          { originalName: { $regex: term, $options: 'i' } },
-          { filename: { $regex: term, $options: 'i' } },
-          { mimeType: { $regex: term, $options: 'i' } },
-          { tags: { $regex: term, $options: 'i' } },
-          { channels: { $regex: term, $options: 'i' } },
+          { originalName: { $regex: filters.search, $options: 'i' } },
+          { filename: { $regex: filters.search, $options: 'i' } },
+          { mimeType: { $regex: filters.search, $options: 'i' } },
+          { tags: { $regex: filters.search, $options: 'i' } },
+          { channels: { $regex: filters.search, $options: 'i' } },
         ],
       });
     }
+    if (filters?.date) {
+      const start = new Date(filters.date);
+      if (!isNaN(start.getTime())) {
+        const end = new Date(start);
+        end.setDate(start.getDate() + 1);
 
+        q.$and = q.$and || [];
+        q.$and.push({
+          createdAt: { $gte: start, $lt: end },
+        });
+      }
+    }
     const page = filters.page && filters.page > 0 ? filters.page : 1;
     const limit = filters.limit && filters.limit > 0 ? filters.limit : 20;
 
@@ -96,35 +101,35 @@ export class AssetRepository {
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit)
+      .populate({
+        path: 'projectId',
+        select: 'name description teamId',
+        populate: {
+          path: 'teamId',
+          select: 'name description',
+        },
+      })
+      .populate('teamId', 'name description')
       .lean();
 
     return { data, total };
-  }
-
-  static async updateThumbnailPath(
-    id: string,
-    thumbnailPath: string,
-  ): Promise<void> {
-    await Asset.findByIdAndUpdate(id, {
-      thumbnailUrl: thumbnailPath,
-      updatedAt: new Date(),
-    }).exec();
   }
 
   static async incrementDownloadCount(id: string): Promise<void> {
     await Asset.findByIdAndUpdate(id, { $inc: { downloadCount: 1 } }).exec();
   }
 
-  static async delete(id: string): Promise<boolean> {
+  static async delete(id: string, userId: string): Promise<boolean> {
+    const asset = await Asset.findById(id).exec();
+
+    if (!asset) return false;
+
+    if (String(asset.userId) !== String(userId)) {
+      throw new ApiError(403, 'You are not allowed to delete this asset');
+    }
+
     const result = await Asset.findByIdAndDelete(id).exec();
     return !!result;
-  }
-
-  static async updateTags(id: string, tags: string[]): Promise<void> {
-    await Asset.findByIdAndUpdate(id, {
-      tags,
-      updatedAt: new Date(),
-    }).exec();
   }
 
   static async aggregate(pipeline: any[]) {
