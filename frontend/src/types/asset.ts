@@ -1,3 +1,16 @@
+export interface TeamRef {
+  _id: string
+  name: string
+  description?: string
+}
+
+export interface ProjectRef {
+  _id: string
+  name: string
+  description?: string
+  teamId?: TeamRef
+}
+
 export interface Asset {
   _id: string
   filename: string
@@ -23,10 +36,14 @@ export interface Asset {
   description?: string
   downloadCount: number
   userId: string
+  teamId?: TeamRef
+  projectId?: ProjectRef
+  channels?: string[]
   createdAt: string
   updatedAt: string
   uploadedAt?: string
 }
+
 export interface Filters {
   type: string
   dateRange: string

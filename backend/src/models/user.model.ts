@@ -12,6 +12,7 @@ export interface IUser extends Document {
   createdAt?: Date;
   updatedAt?: Date;
   role: UserRole;
+  profileVisibility: string;
 
   isPasswordCorrect(password: string): Promise<boolean>;
   generateAccessToken(): string;
@@ -40,6 +41,12 @@ const userSchema: Schema<IUser> = new Schema(
       type: String,
       enum: ['user', 'admin'],
       default: 'user',
+      required: true,
+    },
+    profileVisibility: {
+      type: String,
+      enum: ['public', 'private'],
+      default: 'private',
       required: true,
     },
   },

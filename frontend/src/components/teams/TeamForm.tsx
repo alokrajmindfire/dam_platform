@@ -3,7 +3,7 @@ import { useForm, FormProvider } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
-import { useCreateTeam } from '@/utils/apis/teamQueries'
+import { useCreateTeam } from '@/utils/queries/teamQueries'
 import { toast } from 'sonner'
 
 type FormValues = {

@@ -5,7 +5,9 @@ import { UserService } from '../services/user.service';
 import {
   registerUserSchema,
   loginUserSchema,
+  updateVisibilitySchema,
 } from '../validations/user.validation';
+import { IUser } from '../models/user.model';
 
 const registerUser = asyncHandler(async (req: Request, res: Response) => {
   const parsedData = registerUserSchema.parse(req.body);
@@ -45,7 +47,7 @@ const loginUser = asyncHandler(async (req: Request, res: Response) => {
     );
 });
 
-const logoutUser = asyncHandler(async (req: Request, res: Response) => {
+const logoutUser = asyncHandler(async (_: Request, res: Response) => {
   const options = { httpOnly: true, secure: true };
   return res
     .status(200)
@@ -53,4 +55,39 @@ const logoutUser = asyncHandler(async (req: Request, res: Response) => {
     .json(new ApiResponse(200, {}, 'User logged out successfully'));
 });
 
-export { registerUser, loginUser, logoutUser };
+const getPublicUsers = asyncHandler(async (_: Request, res: Response) => {
+  const user = await UserService.getPublicUsers();
+  return res
+    .status(200)
+    .json(new ApiResponse(200, user, 'User profile updated successfully'));
+});
+const updateProfileVisibility = asyncHandler(
+  async (req: Request & { user?: IUser }, res: Response) => {
+    const id: string = req.user?._id as string;
+    const parseResult = updateVisibilitySchema.safeParse({
+      body: req.body,
+    });
+
+    if (!parseResult.success) {
+      const errorMessage = parseResult.error.message;
+      return res.status(400).json(new ApiResponse(400, null, errorMessage));
+    }
+
+    const { profileVisibility } = req.body;
+    const user = await UserService.updateProfileVisibility(
+      id,
+      profileVisibility,
+    );
+    return res
+      .status(200)
+      .json(new ApiResponse(200, user, 'User profile updated successfully'));
+  },
+);
+
+export {
+  registerUser,
+  loginUser,
+  logoutUser,
+  getPublicUsers,
+  updateProfileVisibility,
+};

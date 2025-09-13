@@ -1,7 +1,6 @@
-import TeamForm from '@/components/teams/TeamForm'
 import UploadZone from '@/components/assets/UploadZone'
 import { useAuth } from '@/contexts/AuthContext'
-import { ProjectForm } from '@/components/projects/ProjectForm'
+import AdminDashboard from '@/components/admin/AdminDashboard'
 
 export default function Dashboard() {
   const { isAdmin } = useAuth()
@@ -13,9 +12,8 @@ export default function Dashboard() {
           <UploadZone />
         </div>
         {isAdmin && (
-          <div className="space-y-4 mt-3">
-            <TeamForm />
-            <ProjectForm />
+          <div className="space-y-4 mt-4">
+            <AdminDashboard />
           </div>
         )}
       </div>

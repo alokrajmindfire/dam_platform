@@ -3,7 +3,7 @@ import { ApiError } from '../utils/ApiError';
 
 export const requireAdmin = (
   req: Request & { user?: any },
-  res: Response,
+  _: Response,
   next: NextFunction,
 ) => {
   if (!req.user) return next(new ApiError(401, 'Unauthorized'));

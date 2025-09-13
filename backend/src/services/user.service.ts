@@ -51,4 +51,13 @@ export class UserService {
 
     return { loggedInUser, accessToken };
   }
+  static async getPublicUsers() {
+    return UserRepository.getPublicUsers();
+  }
+  static async updateProfileVisibility(
+    id: string,
+    profileVisibility: 'public' | 'private',
+  ) {
+    return UserRepository.updateProfileVisibility(id, profileVisibility);
+  }
 }

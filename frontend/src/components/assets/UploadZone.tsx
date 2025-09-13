@@ -14,9 +14,10 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { ChannelSelector } from '@/components/assets/ChannelSelector'
-import { useProjectsByTeam } from '@/utils/apis/projectQueries'
-import { useTeams } from '@/utils/apis/teamQueries'
-import { useUploadAssets } from '@/utils/apis/assetsQueries'
+import { useProjectsByTeam } from '@/utils/queries/projectQueries'
+import { useTeams } from '@/utils/queries/teamQueries'
+import { useUploadAssets } from '@/utils/queries/assetsQueries'
+import { toast } from 'sonner'
 
 interface UploadFile {
   id: string
@@ -58,6 +59,12 @@ export function UploadZone() {
 
   const onDrop = useCallback(
     (accepted: File[]) => {
+      if (accepted.length === 0) return
+
+      if (scope === 'team' && (!teamId || teamId === '0')) {
+        toast.info('Team scope selected but no valid team chosen. Skipping upload.')
+        return
+      }
       const newFiles = accepted.map((file, i) => ({
         id: `${Date.now()}-${i}`,
         file,
@@ -68,8 +75,9 @@ export function UploadZone() {
       const formData = new FormData()
       accepted.forEach((f) => formData.append('files', f))
       formData.append('scope', scope)
-      if (scope === 'team' && teamId) formData.append('teamId', teamId)
-      if (methods.getValues('projectId') && projectId) formData.append('projectId', projectId)
+      if (scope === 'team' && teamId && teamId != '0') formData.append('teamId', teamId)
+      if (methods.getValues('projectId') && projectId && projectId != '0')
+        formData.append('projectId', projectId)
       const channels = methods.getValues('channels') || []
       channels.forEach((c: string) => formData.append('channels', c))
 
@@ -79,7 +87,7 @@ export function UploadZone() {
         },
       })
     },
-    [scope, teamId, methods, uploadMutation],
+    [scope, teamId, projectId, methods, uploadMutation],
   )
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -126,7 +134,7 @@ export function UploadZone() {
                     type="button"
                     onClick={() => setValue('scope', 'personal')}
                     aria-label="Set scope to personal"
-                    className={`px-3 py-1 rounded ${scope === 'personal' ? 'bg-primary text-white' : 'border'}`}
+                    className={`px-3 py-1 rounded ${scope === 'personal' ? 'bg-primary text-green-600' : 'border'}`}
                   >
                     Personal
                   </Button>
@@ -134,7 +142,7 @@ export function UploadZone() {
                     type="button"
                     onClick={() => setValue('scope', 'team')}
                     aria-label="Set scope to team"
-                    className={`px-3 py-1 rounded ${scope === 'team' ? 'bg-primary text-white' : 'border'}`}
+                    className={`px-3 py-1 rounded ${scope === 'team' ? 'bg-primary text-green-600' : 'border'}`}
                   >
                     Team
                   </Button>
@@ -154,6 +162,7 @@ export function UploadZone() {
                         <SelectValue placeholder="Select team" />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="0">None</SelectItem>
                         {teams.map((t: any) => (
                           <SelectItem key={t._id} value={t._id}>
                             {t.name}
@@ -176,7 +185,8 @@ export function UploadZone() {
                         />
                       </SelectTrigger>
                       <SelectContent>
-                        {projectsQuery.data?.map((p: any) => (
+                        <SelectItem value="0">None</SelectItem>
+                        {projectsQuery?.data?.map((p: any) => (
                           <SelectItem key={p._id} value={p._id}>
                             {p.name}
                           </SelectItem>

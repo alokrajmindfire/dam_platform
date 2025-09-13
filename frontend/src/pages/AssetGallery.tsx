@@ -1,5 +1,3 @@
-'use client'
-
 import { useEffect, useState } from 'react'
 import { AssetCard } from '@/components/assets/AssetCard'
 import {
@@ -9,18 +7,24 @@ import {
   PaginationPrevious,
   PaginationNext,
 } from '@/components/ui/pagination'
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from '@/components/ui/select'
-import { useAssets } from '@/utils/apis/assetsQueries'
+import { AssetFilters } from '@/components/assets/AssetFilters'
+import { useAssets } from '@/utils/queries/assetsQueries'
 
 function AssetGallery() {
-  const { assets, total, isLoading, searchAssets, changeFilter, filter, page, setPage } =
-    useAssets()
+  const {
+    assets,
+    total,
+    isLoading,
+    searchAssets,
+    changeFilter,
+    filter,
+    teamId,
+    changeTeam,
+    date,
+    changeDate,
+    page,
+    setPage,
+  } = useAssets()
 
   const [searchTerm, setSearchTerm] = useState('')
 
@@ -35,27 +39,16 @@ function AssetGallery() {
 
   return (
     <div>
-      <div className="flex flex-col sm:flex-row gap-4 sm:items-center mb-4">
-        <input
-          type="text"
-          className="w-full sm:w-1/2 px-4 py-2 border rounded-md"
-          placeholder="Search assets..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-
-        <Select value={filter} onValueChange={(val) => changeFilter(val)}>
-          <SelectTrigger className="w-full sm:w-48">
-            <SelectValue placeholder="Filter by type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All</SelectItem>
-            <SelectItem value="image">Images</SelectItem>
-            <SelectItem value="video">Videos</SelectItem>
-            <SelectItem value="document">Documents</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      <AssetFilters
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        filter={filter}
+        changeFilter={changeFilter}
+        teamId={teamId}
+        changeTeam={changeTeam}
+        date={date}
+        changeDate={changeDate}
+      />
 
       {isLoading ? (
         <p>Loading...</p>
@@ -65,7 +58,7 @@ function AssetGallery() {
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {assets.map((asset) => (
-              <AssetCard key={(asset as any)._id} asset={asset} />
+              <AssetCard key={asset._id} asset={asset} />
             ))}
           </div>
 

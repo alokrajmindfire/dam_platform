@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import InlineLoader from '@/components/layout/InlineLoader'
 
 const Layout = lazy(() => import('@/components/layout/Layout'))
+const Team = lazy(() => import('@/pages/Team'))
 const ProtectedRoute = lazy(() => import('./ProtectedRoute'))
 const Dashboard = lazy(() => import('@/pages/Dashboard'))
 const AssetGallery = lazy(() => import('@/pages/AssetGallery'))
@@ -13,7 +14,7 @@ const NetworkIssue = lazy(() => import('@/components/layout/NetworkIssue'))
 const NotFound = lazy(() => import('@/components/layout/NotFound'))
 
 export const AppRoutes: React.FC = React.memo(() => {
-  const { isAuthenticated, loading } = useAuth()
+  const { isAuthenticated, loading, isAdmin } = useAuth()
 
   if (loading) {
     return <InlineLoader />
@@ -39,6 +40,7 @@ export const AppRoutes: React.FC = React.memo(() => {
       >
         <Route index element={<Dashboard />} />
         <Route path="gallery" element={<AssetGallery />} />
+        {isAdmin && <Route path="/teams" element={<Team />} />}
         <Route path="network-issue" element={<NetworkIssue />} />
       </Route>
       <Route path="*" element={<NotFound />} />

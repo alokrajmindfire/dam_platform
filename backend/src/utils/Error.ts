@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 
 interface CustomError extends Error {
   statusCode?: number;
@@ -6,12 +6,7 @@ interface CustomError extends Error {
   details?: any;
 }
 
-export const ErrorHandler = (
-  err: CustomError,
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
+export const ErrorHandler = (err: CustomError, _: Request, res: Response) => {
   console.error('Error Caught:', {
     message: err.message,
     stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,

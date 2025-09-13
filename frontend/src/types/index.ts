@@ -1,8 +1,9 @@
 export interface User {
-  id: string
+  _id: string
   email: string
   fullName: string
   role: string
+  profileVisibility: 'public' | 'private'
 }
 export type Team = {
   _id: string

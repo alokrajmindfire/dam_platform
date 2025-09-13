@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
 import { ModeToggle } from '../ui/mode-toggle'
-import { useRegisterMutation } from '@/utils/apis/authQueries'
+import { useRegisterMutation } from '@/utils/queries/authQueries'
 import { useForm } from 'react-hook-form'
 
 type RegisterValues = {

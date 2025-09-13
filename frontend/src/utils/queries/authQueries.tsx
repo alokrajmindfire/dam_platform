@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query'
-import { authApi } from './api'
+import { authApi } from '../apis/userApi'
 import { toast } from 'sonner'
 import type { AxiosError } from 'axios'
 import { useAuth } from '@/contexts/AuthContext'
@@ -39,6 +39,21 @@ export const useRegisterMutation = () => {
       const err = error as AxiosError<{ message: string }>
       const message = err.response?.data?.message || 'Login failed'
       toast.error(message)
+    },
+  })
+}
+
+export const useLogout = () => {
+  const { logout } = useAuth()
+
+  return useMutation({
+    mutationFn: authApi.logout,
+    onSuccess: () => {
+      logout()
+      toast.success('Logged out successfully')
+    },
+    onError: (error: any) => {
+      toast.error(error?.message || 'Logout failed')
     },
   })
 }
