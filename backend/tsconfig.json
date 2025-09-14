@@ -9,17 +9,21 @@
     "baseUrl": ".",
     "esModuleInterop": true,
     "composite": true,
-    "types":["node"],
+    "types":["node", "jest"],
     "typeRoots": ["./node_modules/@types","./types"],
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
-    "noImplicitAny": true
+    "noImplicitAny": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true
   },
   "include": [
-    "src/**/*.ts"
+    "src/**/*.ts",
+    "tests"
   ],
   "exclude": [
     "typings/*",
