@@ -9,6 +9,13 @@ const options: swaggerJSDoc.Options = {
       version: '1.0.0',
       description: 'API documentation Digital Asset Management (DAM) Platform',
     },
+    tags: [
+      { name: 'Auth', description: 'Authentication endpoints' },
+      { name: 'Assets', description: 'Asset management endpoints' },
+      { name: 'Teams', description: 'Team management endpoints' },
+      { name: 'Projects', description: 'Project management endpoints' },
+      { name: 'Dashboard', description: 'Dashboard endpoints' },
+    ],
     servers: [
       {
         url: '/api',
