@@ -82,3 +82,13 @@ This will start:
 | MinIO Console    | [http://localhost:9001](http://localhost:9001) |
 | BullMQ Dashboard | [http://localhost:5000](http://localhost:5000) |
 ---
+| Service                             | URL / Endpoint                                                | Notes                                                         |
+| ----------------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------- |
+| **Frontend (React + Nginx)**        | [http://localhost:3000](http://localhost:3000)                | React app, proxies `/api` to backend                          |
+| **Backend (Node.js + Express API)** | [http://localhost:5000](http://localhost:5000)                | Direct REST API access (e.g. `/api/health`)                   |
+| **Redis**                           | `localhost:6379`                                              | No UI, connect via CLI or BullMQ                              |
+| **BullMQ Dashboard** *(optional)*   | If added, e.g. [http://localhost:4000](http://localhost:4000) | Monitor jobs/queues                                           |
+| **MinIO Console (Web UI)**          | [http://localhost:9001](http://localhost:9001)                | Login → `admin / admin12345`                                  |
+| **MinIO S3 API**                    | [http://localhost:9000](http://localhost:9000)                | S3-compatible storage endpoint                                |
+| **MongoDB**                         | `mongodb://localhost:27017`                                   | Database (DB name: `dam_platform`)                            |
+| **Asset Worker**                    | (no port)                                                     | Background processor for BullMQ jobs (video/image processing) |
