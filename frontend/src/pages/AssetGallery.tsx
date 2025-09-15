@@ -58,7 +58,7 @@ function AssetGallery() {
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {assets.map((asset) => (
-              <AssetCard key={asset._id} asset={asset} />
+              <AssetCard key={asset._id} asset={asset} aria-describedby={asset._id} />
             ))}
           </div>
 
