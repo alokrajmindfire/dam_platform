@@ -1,1 +1,19 @@
-npm test
+#!/bin/bash
+
+# Check latest commit message
+npx commitlint --from=HEAD~1 --to=HEAD || exit 1
+
+# Run root tests
+npm test || exit 1
+
+# Frontend
+cd frontend || exit 1
+npm run test || exit 1
+npm run build || exit 1
+cd ..
+
+# Backend
+cd backend || exit 1
+npm run test || exit 1
+npm run build || exit 1
+cd ..
