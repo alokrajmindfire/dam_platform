@@ -1,6 +1,5 @@
 import {
   uploadAssets,
-  getAssetsId,
   getAssets,
   updateAssetsDownloadCount,
   deleteAsset,
@@ -66,48 +65,6 @@ describe('AssetController', () => {
     });
   });
 
-  describe('getAssetsId', () => {
-    it('should return 404 if user not found', async () => {
-      mockReq.user = null;
-      mockReq.params = { id: '1' };
-
-      await getAssetsId(mockReq, mockRes, jest.fn());
-
-      expect(mockRes.status).toHaveBeenCalledWith(404);
-      expect(mockRes.json).toHaveBeenCalledWith({
-        success: false,
-        message: 'User does not exist',
-      });
-    });
-
-    it('should return 400 if no id provided', async () => {
-      mockReq.user = { _id: new Types.ObjectId() };
-      mockReq.params = {};
-
-      await getAssetsId(mockReq, mockRes, jest.fn());
-
-      expect(mockRes.status).toHaveBeenCalledWith(400);
-      expect(mockRes.json).toHaveBeenCalledWith({
-        success: false,
-        message: 'Asset ID required',
-      });
-    });
-
-    it('should return asset URL successfully', async () => {
-      mockReq.user = { _id: new Types.ObjectId() };
-      mockReq.params = { id: 'asset1' };
-      const mockAssetUrl = { url: 'http://example.com' };
-      (AssetService.getAssetUrl as jest.Mock).mockResolvedValue(mockAssetUrl);
-
-      await getAssetsId(mockReq, mockRes, jest.fn());
-
-      expect(AssetService.getAssetUrl).toHaveBeenCalledWith('asset1');
-      expect(mockRes.status).toHaveBeenCalledWith(200);
-      expect(mockRes.json).toHaveBeenCalledWith(
-        new ApiResponse(200, mockAssetUrl, 'Asset retrieved'),
-      );
-    });
-  });
 
   describe('getAssets', () => {
     it('should return 401 if user not found', async () => {

@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { ApiError } from '../utils/ApiError';
-import { IUser } from 'src/models/user.model';
+import { IUser } from '../models/user.model';
 
 export const requireAdmin = (
   req: Request & { user?: IUser },

@@ -34,7 +34,7 @@ const worker = new Worker(
   async (job) => {
     try {
       logger.info(`Processing job ${job.id}: ${job.name}`);
-      console.log('job.name', job.name);
+      // console.log('job.name', job.name);
       await job.updateProgress(0);
 
       let result;

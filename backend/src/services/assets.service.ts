@@ -1,13 +1,13 @@
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
+import { Schema } from 'mongoose';
 import { AssetRepository } from '../repositories/assets.repositories';
 import { BUCKET_NAME, minioClient } from '../config/minio';
-import { Schema } from 'mongoose';
 import { IAsset } from '../models/assets.model';
 import { assetProcessingQueue } from '../config/queue';
 import { FindManyFilters } from '../types/assets.types';
 import { ApiError } from '../utils/ApiError';
-import logger from 'src/utils/logger';
+import logger from '../utils/logger';
 
 type Owner = {
   userId?: Schema.Types.ObjectId;
@@ -64,10 +64,7 @@ export class AssetService {
         {
           priority: file.mimetype.startsWith('image/') ? 1 : 2,
           attempts: 3,
-          backoff: {
-            type: 'exponential',
-            delay: 2000,
-          },
+          backoff: { type: 'exponential', delay: 2000 },
         },
       );
 
@@ -76,19 +73,6 @@ export class AssetService {
       logger.error('Asset upload failed:', error);
       throw new Error('Failed to upload asset');
     }
-  }
-
-  static async getAssetUrl(assetId: string): Promise<string> {
-    const asset = await AssetRepository.findById(assetId);
-    if (!asset) {
-      throw new ApiError(404, 'Asset not found');
-    }
-
-    return await minioClient.presignedGetObject(
-      BUCKET_NAME,
-      asset.storagePath,
-      7 * 24 * 60 * 60,
-    );
   }
 
   static async getAssetsUrl(
@@ -100,59 +84,38 @@ export class AssetService {
       date?: string;
     },
   ) {
-    const { data, total } = await AssetRepository.findManyForUser(
-      userId,
-      filters,
-    );
-
-    const assetsWithUrls = await Promise.all(
-      data.map(async (asset) => {
-        const url = await minioClient.presignedGetObject(
-          BUCKET_NAME,
-          asset.storagePath,
-          7 * 24 * 60 * 60,
-        );
-
-        let thumbnailUrlSigned;
-        if ((asset as any).thumbnailUrl) {
-          thumbnailUrlSigned = await minioClient.presignedGetObject(
-            BUCKET_NAME,
-            (asset as any).thumbnailUrl,
-            7 * 24 * 60 * 60,
-          );
-        }
-
-        const transcodedUrls: Record<string, string> = {};
-        if (
-          (asset as any).transcoded &&
-          typeof (asset as any).transcoded === 'object'
-        ) {
-          for (const [quality, path] of Object.entries(
-            (asset as any).transcoded,
-          )) {
-            if (path) {
-              transcodedUrls[quality] = await minioClient.presignedGetObject(
-                BUCKET_NAME,
-                path as string,
-                7 * 24 * 60 * 60,
-              );
-            }
-          }
-        }
-
-        return { ...asset, url, thumbnailUrlSigned, transcodedUrls };
-      }),
-    );
-
-    return { data: assetsWithUrls, total };
+    return AssetRepository.findManyForUser(userId, filters);
   }
 
   static async incrementDownloadCount(assetId: string): Promise<void> {
-    return await AssetRepository.incrementDownloadCount(assetId);
+    return AssetRepository.incrementDownloadCount(assetId);
   }
+
   static async delete(assetId: string, userId: string): Promise<boolean> {
-    return await AssetRepository.delete(assetId, userId);
+    return AssetRepository.delete(assetId, userId);
   }
+
+  static async getAssetStream(assetId: string) {
+    const asset = await AssetRepository.findById(assetId);
+    if (!asset) throw new ApiError(404, 'Asset not found');
+
+    const stream = await minioClient.getObject(BUCKET_NAME, asset.storagePath);
+    return { stream, asset };
+  }
+
+  static async getThumbnailStream(assetId: string) {
+    const asset = await AssetRepository.findById(assetId);
+    if (!asset) throw new ApiError(404, 'Asset not found');
+    if (!(asset as any).thumbnailUrl)
+      throw new ApiError(404, 'Thumbnail not found');
+
+    const stream = await minioClient.getObject(
+      BUCKET_NAME,
+      (asset as any).thumbnailUrl,
+    );
+    return { stream, asset };
+  }
+
   private static generateTags(filename: string, mimeType: string): string[] {
     const tags: string[] = [];
 
@@ -171,7 +134,6 @@ export class AssetService {
       .filter((word) => word.length > 2);
 
     tags.push(...nameWords.slice(0, 5));
-
     return Array.from(new Set(tags));
   }
 }

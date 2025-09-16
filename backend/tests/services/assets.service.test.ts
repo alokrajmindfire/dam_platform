@@ -1,9 +1,8 @@
 import { AssetService } from '../../src/services/assets.service';
 import { AssetRepository } from '../../src/repositories/assets.repositories';
-import { minioClient, BUCKET_NAME } from '../../src/config/minio';
+import { minioClient } from '../../src/config/minio';
 import { assetProcessingQueue } from '../../src/config/queue';
 import { Types, Schema } from 'mongoose';
-import { ApiError } from '../../src/utils/ApiError';
 
 jest.mock('../../src/repositories/assets.repositories');
 jest.mock('../../src/config/minio');
@@ -53,31 +52,6 @@ describe('AssetService', () => {
             await expect(AssetService.uploadAsset(mockFile, owner)).rejects.toThrow(
                 'Failed to upload asset'
             );
-        });
-    });
-
-    describe('getAssetUrl', () => {
-        it('should return presigned URL for asset', async () => {
-            const assetId = 'asset1';
-            const fakeAsset = { _id: assetId, storagePath: 'path/to/file.png' };
-            (AssetRepository.findById as jest.Mock).mockResolvedValue(fakeAsset);
-            (minioClient.presignedGetObject as jest.Mock).mockResolvedValue('http://signed.url');
-
-            const result = await AssetService.getAssetUrl(assetId);
-
-            expect(AssetRepository.findById).toHaveBeenCalledWith(assetId);
-            expect(minioClient.presignedGetObject).toHaveBeenCalledWith(
-                BUCKET_NAME,
-                'path/to/file.png',
-                7 * 24 * 60 * 60
-            );
-            expect(result).toBe('http://signed.url');
-        });
-
-        it('should throw ApiError if asset not found', async () => {
-            (AssetRepository.findById as jest.Mock).mockResolvedValue(null);
-
-            await expect(AssetService.getAssetUrl('asset1')).rejects.toThrow(ApiError);
         });
     });
 

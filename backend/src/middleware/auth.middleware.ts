@@ -3,7 +3,7 @@ import { asyncHandler } from '../utils/asyncHandler';
 import jwt from 'jsonwebtoken';
 import { IUser, User } from '../models/user.model';
 import { Request } from 'express';
-import logger from 'src/utils/logger';
+import logger from '../utils/logger';
 
 export const verifyJWT = asyncHandler(
   async (req: Request & { user?: IUser }, _, next) => {

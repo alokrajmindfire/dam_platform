@@ -71,8 +71,6 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - REDIS_PASSWORD=admin12345
-      - REDIS_HOST=redis://redis:6379
-      - MINIO_PUBLIC_ENDPOINT=http://localhost/dam-assets 
   frontend:
     build: ./frontend
     container_name: dam_fe_container

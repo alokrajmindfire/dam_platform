@@ -1,10 +1,11 @@
 import mongoose from 'mongoose';
+import logger from '../utils/logger';
 
 export const closeDB = async () => {
   try {
     await mongoose.connection.close();
   } catch (error) {
-    console.log('MONGODB connection close FAILED ', error);
+    logger.info('MONGODB connection close FAILED ', error);
     process.exit(1);
   }
 };
@@ -13,11 +14,11 @@ const connectDB = async () => {
     const connectionInstance = await mongoose.connect(
       `${process.env.MONGODB_URI}`,
     );
-    console.log(
+    logger.info(
       `\n MongoDB connected !! DB HOST: ${connectionInstance.connection.host}`,
     );
   } catch (error) {
-    console.log('MONGODB connection FAILED ', error);
+    logger.log('MONGODB connection FAILED ', error);
     process.exit(1);
   }
 };

@@ -5,6 +5,7 @@ import path from 'path';
 import { minioClient, BUCKET_NAME } from '../config/minio';
 import { Asset } from '../models/assets.model';
 import pdfParse from 'pdf-parse';
+import logger from '../utils/logger';
 
 interface ProcessAssetData {
   assetId: string;
@@ -16,7 +17,7 @@ interface ProcessAssetData {
 export class AssetProcessor {
   static async processAsset(data: ProcessAssetData) {
     const { assetId, storagePath, mimeType, filename } = data;
-    console.log({ assetId, storagePath, mimeType, filename });
+    // console.log({ assetId, storagePath, mimeType, filename });
     try {
       if (mimeType.startsWith('image/')) {
         await this.processImage(assetId, storagePath, filename);
@@ -26,7 +27,7 @@ export class AssetProcessor {
         await this.processDocument(assetId, storagePath, filename);
       }
     } catch (error) {
-      console.error(`Failed to process asset ${assetId}:`, error);
+      logger.error(`Failed to process asset ${assetId}:`, error);
       throw error;
     }
   }
@@ -70,7 +71,7 @@ export class AssetProcessor {
         status: 'ready',
       });
     } catch (error) {
-      console.error('Image processing failed:', error);
+      logger.error('Image processing failed:', error);
       await Asset.findByIdAndUpdate(assetId, { status: 'failed' });
       throw error;
     }
@@ -189,7 +190,7 @@ export class AssetProcessor {
         status: 'ready',
       });
     } catch (error) {
-      console.error('Video processing failed:', error);
+      logger.error('Video processing failed:', error);
       await Asset.findByIdAndUpdate(assetId, { status: 'failed' });
       throw error;
     }
@@ -219,7 +220,7 @@ export class AssetProcessor {
         status: 'ready',
       });
     } catch (error) {
-      console.error('Document processing failed:', error);
+      logger.error('Document processing failed:', error);
       await Asset.findByIdAndUpdate(assetId, { status: 'failed' });
       throw error;
     }

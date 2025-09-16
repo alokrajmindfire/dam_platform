@@ -3,8 +3,10 @@ import { verifyJWT } from '../middleware/auth.middleware';
 import multer from 'multer';
 import {
   deleteAsset,
+  downloadAsset,
   getAssets,
-  getAssetsId,
+  streamAsset,
+  streamThumbnail,
   updateAssetsDownloadCount,
   uploadAssets,
 } from '../controllers/assets.controller';
@@ -57,8 +59,9 @@ router
   .route('/upload')
   .post(verifyJWT, upload.array('files', 10), uploadAssets);
 router.route('/').get(verifyJWT, getAssets);
-router.route('/:id').get(verifyJWT, getAssetsId);
 router.route('/download/:id').patch(verifyJWT, updateAssetsDownloadCount);
 router.route('/:id').delete(verifyJWT, deleteAsset);
-
+router.get('/:assetId/stream', verifyJWT, streamAsset);
+router.get('/:assetId/download', verifyJWT, downloadAsset);
+router.get('/:assetId/thumbnail', verifyJWT, streamThumbnail);
 export default router;

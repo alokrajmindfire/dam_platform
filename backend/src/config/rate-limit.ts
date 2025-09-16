@@ -1,6 +1,6 @@
 import { rateLimit } from 'express-rate-limit';
 import { Request, Response } from 'express';
-import logger from 'src/utils/logger';
+import logger from '../utils/logger';
 
 export const limiter = rateLimit({
   windowMs: 5 * 60 * 1000,

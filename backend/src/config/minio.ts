@@ -1,5 +1,5 @@
 import * as Minio from 'minio';
-import logger from 'src/utils/logger';
+import logger from '../utils/logger';
 
 const { MINIO_ENDPOINT, MINIO_PORT, MINIO_ROOT_USER, MINIO_ROOT_PASSWORD } =
   process.env;
@@ -30,7 +30,7 @@ export async function initializeMinIO() {
       Statement: [
         {
           Effect: 'Allow',
-          Principal: '*',
+          Principal: { AWS: ['*'] },
           Action: ['s3:GetObject'],
           Resource: [`arn:aws:s3:::${BUCKET_NAME}/*`],
         },

@@ -32,25 +32,9 @@ const uploadAssets = asyncHandler(
     );
 
     const assets = await Promise.all(uploadPromises);
-
     return res
       .status(201)
       .json(new ApiResponse(201, assets, 'Assets uploaded successfully'));
-  },
-);
-
-const getAssetsId = asyncHandler(
-  async (req: Request & { user?: IUser }, res: Response) => {
-    const user = req.user;
-    if (!user) throw new ApiError(404, 'User does not exist');
-
-    const { id } = req.params;
-    if (!id) throw new ApiError(400, 'Asset ID required');
-
-    const assetUrl = await AssetService.getAssetUrl(id as string);
-    return res
-      .status(200)
-      .json(new ApiResponse(200, assetUrl, 'Asset retrieved'));
   },
 );
 
@@ -63,7 +47,7 @@ const getAssets = asyncHandler(
       search = '',
       filter = '',
       page = 1,
-      limit = 6,
+      limit = 10,
       teamId,
       projectId,
       channels,
@@ -92,7 +76,6 @@ const getAssets = asyncHandler(
       user._id as Schema.Types.ObjectId,
       filters,
     );
-
     return res
       .status(200)
       .json(new ApiResponse(200, { assets: data, total }, 'Assets retrieved'));
@@ -100,7 +83,7 @@ const getAssets = asyncHandler(
 );
 
 const updateAssetsDownloadCount = asyncHandler(
-  async (req: Request & { user?: IUser }, res: Response) => {
+  async (req: Request, res: Response) => {
     const { id } = req.params;
     await AssetService.incrementDownloadCount(id);
     return res
@@ -113,24 +96,59 @@ const deleteAsset = asyncHandler(
   async (req: Request & { user?: IUser }, res: Response) => {
     const { id } = req.params;
     const userId = req.user?._id as string;
+    if (!userId) throw new ApiError(401, 'Unauthorized');
 
-    if (!userId) {
-      throw new ApiError(401, 'Unauthorized');
-    }
     const deleted = await AssetService.delete(id, userId);
-    if (!deleted) {
-      throw new ApiError(404, 'Asset not found');
-    }
+    if (!deleted) throw new ApiError(404, 'Asset not found');
+
     return res
       .status(200)
-      .json(new ApiResponse(200, {}, 'Download count incremented'));
+      .json(new ApiResponse(200, {}, 'Asset deleted successfully'));
   },
 );
 
+const streamAsset = asyncHandler(async (req: Request, res: Response) => {
+  const { assetId } = req.params;
+  const { stream, asset } = await AssetService.getAssetStream(assetId);
+
+  res.setHeader('Content-Type', asset.mimeType);
+  res.setHeader(
+    'Content-Disposition',
+    `inline; filename="${asset.originalName}"`,
+  );
+  stream.pipe(res);
+});
+
+const downloadAsset = asyncHandler(async (req: Request, res: Response) => {
+  const { assetId } = req.params;
+  const { stream, asset } = await AssetService.getAssetStream(assetId);
+
+  res.setHeader('Content-Type', asset.mimeType);
+  res.setHeader(
+    'Content-Disposition',
+    `attachment; filename="${asset.originalName}"`,
+  );
+  stream.pipe(res);
+});
+
+const streamThumbnail = asyncHandler(async (req: Request, res: Response) => {
+  const { assetId } = req.params;
+  const { stream, asset } = await AssetService.getThumbnailStream(assetId);
+
+  res.setHeader('Content-Type', asset.mimeType);
+  res.setHeader(
+    'Content-Disposition',
+    `inline; filename="thumb-${asset.originalName}"`,
+  );
+  stream.pipe(res);
+});
+
 export {
   uploadAssets,
-  getAssetsId,
   getAssets,
   updateAssetsDownloadCount,
   deleteAsset,
+  streamAsset,
+  downloadAsset,
+  streamThumbnail,
 };
