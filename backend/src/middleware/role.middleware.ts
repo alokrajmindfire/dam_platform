@@ -9,6 +9,6 @@ export const requireAdmin = (
 ) => {
   if (!req.user) return next(new ApiError(401, 'Unauthorized'));
   if (req.user.role !== 'admin')
-    return next(new ApiError(403, 'Forbidden: Admins only'));
+    return next(new ApiError(401, 'Forbidden: Admins only'));
   next();
 };

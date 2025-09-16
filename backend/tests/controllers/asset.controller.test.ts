@@ -151,7 +151,7 @@ describe('AssetController', () => {
       expect(AssetService.delete).toHaveBeenCalledWith('asset1', 'user1');
       expect(mockRes.status).toHaveBeenCalledWith(200);
       expect(mockRes.json).toHaveBeenCalledWith(
-        new ApiResponse(200, {}, 'Download count incremented'),
+        new ApiResponse(200, {}, 'Asset deleted successfully'),
       );
     });
   });

@@ -30,7 +30,15 @@
  *           type: string
  *           format: date-time
  *           example: "2025-09-10T12:34:56.789Z"
- *
+ *     ErrorResponse:
+ *       type: object
+ *       properties:
+ *         message:
+ *           type: string
+ *           example: "Invalid email or password"
+ *         statusCode:
+ *           type: integer
+ *           example: 401
  */
 
 /**
