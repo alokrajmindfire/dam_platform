@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Download, Trash } from 'lucide-react'
@@ -14,8 +14,12 @@ interface AssetCardProps {
 }
 
 export function AssetCard({ asset }: AssetCardProps) {
-  const [open, setOpen] = useState(false)
   const { user } = useAuth()
+  const [open, setOpen] = useState(false)
+  const [thumbnailStatus, setThumbnailStatus] = useState<'loading' | 'available' | 'unavailable'>(
+    'loading',
+  )
+  const [streamAvailable, setStreamAvailable] = useState(true)
 
   const isImage = asset.mimeType.startsWith('image/')
   const isVideo = asset.mimeType.startsWith('video/')
@@ -24,10 +28,32 @@ export function AssetCard({ asset }: AssetCardProps) {
   const downloadMutation = useIncrementDownload()
   const deleteMutation = useDeleteMutation()
 
+  const backendDownloadUrl = `/api/assets/${asset._id}/download`
+  const backendStreamUrl = open ? `/api/assets/${asset._id}/stream` : ''
+  const backendThumbnailUrl = `/api/assets/${asset._id}/thumbnail`
+
+  useEffect(() => {
+    const fetchThumbnail = async () => {
+      try {
+        const res = await fetch(backendThumbnailUrl, { method: 'HEAD' }) // lightweight check
+        if (res.ok) {
+          setThumbnailStatus('available')
+        } else {
+          setThumbnailStatus('unavailable')
+        }
+      } catch {
+        setThumbnailStatus('unavailable')
+      }
+    }
+    fetchThumbnail()
+  }, [backendThumbnailUrl])
+
   const handleDownload = async () => {
     try {
       await downloadMutation.mutateAsync(asset._id)
-      const response = await fetch(asset.url)
+      const response = await fetch(backendDownloadUrl)
+      if (!response.ok) throw new Error('Download failed')
+
       const blob = await response.blob()
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
@@ -38,10 +64,12 @@ export function AssetCard({ asset }: AssetCardProps) {
       link.remove()
       window.URL.revokeObjectURL(url)
     } catch (err) {
-      console.error('Download failed', err)
+      // console.error('Download failed', err)
       toast.error('Download failed')
     }
   }
+
+  const handleStreamError = () => setStreamAvailable(false)
 
   return (
     <>
@@ -52,26 +80,18 @@ export function AssetCard({ asset }: AssetCardProps) {
         aria-label={`Open asset ${asset.originalName || asset.filename}`}
         className="cursor-pointer rounded-lg overflow-hidden shadow hover:shadow-md transition bg-gray-100 flex items-center justify-center aspect-[4/3]"
       >
-        {asset.thumbnailUrlSigned ? (
+        {thumbnailStatus === 'available' && (isImage || isVideo) ? (
           <img
-            src={asset.thumbnailUrlSigned}
+            src={backendThumbnailUrl}
             alt={asset.filename}
             className="object-cover w-full h-full"
           />
-        ) : isImage ? (
-          <div className="flex flex-col items-center justify-center text-gray-600">
-            <span className="text-5xl">🖼️</span>
-            <span className="text-sm mt-2 text-black">{asset.status}</span>
-          </div>
-        ) : isVideo ? (
-          <div className="flex flex-col items-center justify-center text-gray-600">
-            <span className="text-5xl">🎞️</span>
-            <span className="text-sm mt-2 text-black">{asset.status}</span>
-          </div>
         ) : isPdf ? (
           <span className="text-5xl">📄</span>
-        ) : (
+        ) : !isImage && !isVideo ? (
           <span className="text-5xl">📦</span>
+        ) : (
+          <span className="text-sm text-gray-500">Thumbnail not available</span>
         )}
       </div>
 
@@ -82,35 +102,49 @@ export function AssetCard({ asset }: AssetCardProps) {
           </DialogHeader>
 
           <div className="flex flex-col gap-4">
-            {!isPdf && (
+            {!isPdf && (isImage || isVideo) && streamAvailable ? (
               <div className="w-full flex items-center justify-center bg-gray-100 rounded-lg overflow-hidden aspect-video">
-                {isImage && (
+                {isImage && backendStreamUrl && (
                   <img
-                    src={asset.url}
+                    src={backendStreamUrl}
                     alt={asset.filename}
                     className="object-contain w-full h-full"
+                    onError={handleStreamError}
                   />
                 )}
-                {isVideo && (
+                {isVideo && backendStreamUrl && (
                   <video
-                    src={asset.transcodedUrls?.['720p'] || asset.url}
+                    src={backendStreamUrl}
                     controls
-                    autoPlay
                     className="w-full h-full object-contain"
+                    onError={handleStreamError}
                   />
                 )}
               </div>
-            )}
+            ) : !isPdf && !streamAvailable ? (
+              <div className="flex flex-col items-center justify-center text-gray-500 bg-gray-100 rounded-lg aspect-video">
+                <span className="text-sm mt-2">Stream not available</span>
+              </div>
+            ) : null}
 
-            {isPdf && (
-              <div className="w-full h-[300px] border border-gray-300 rounded">
+            {isPdf && streamAvailable && backendStreamUrl ? (
+              <div className="w-full h-[500px] border border-gray-300 rounded">
                 <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
-                  <Viewer fileUrl={asset.url} />
+                  <Viewer fileUrl={backendStreamUrl} />
                 </Worker>
               </div>
-            )}
+            ) : isPdf && !streamAvailable ? (
+              <div className="flex flex-col items-center justify-center text-gray-500 border border-gray-300 rounded h-[500px]">
+                <span className="text-sm mt-2">PDF not available</span>
+              </div>
+            ) : null}
 
-            {!isImage && !isVideo && !isPdf && <span className="text-6xl">📦</span>}
+            {!isImage && !isVideo && !isPdf && (
+              <div className="flex flex-col items-center text-gray-600">
+                <span className="text-6xl">📦</span>
+                <span className="text-sm mt-2">{asset.status}</span>
+              </div>
+            )}
 
             <div className="text-sm text-gray-600 space-y-1">
               <p>
@@ -146,14 +180,18 @@ export function AssetCard({ asset }: AssetCardProps) {
               <Button variant="outline" onClick={() => setOpen(false)}>
                 Close
               </Button>
-              <Button variant="secondary" onClick={() => window.open(asset.url, '_blank')}>
+              <Button
+                variant="secondary"
+                onClick={() => backendStreamUrl && window.open(backendStreamUrl, '_blank')}
+                disabled={!streamAvailable}
+              >
                 Preview in Browser
               </Button>
               <Button onClick={handleDownload}>
                 <Download className="w-4 h-4 mr-2" />
                 Download
               </Button>
-              {user?._id == asset.userId && (
+              {user?._id === asset.userId && (
                 <Button variant="destructive" onClick={() => deleteMutation.mutate(asset._id)}>
                   <Trash className="w-4 h-4 mr-2" />
                   Delete

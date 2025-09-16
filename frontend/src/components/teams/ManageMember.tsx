@@ -33,7 +33,7 @@ export const ManageMember: React.FC = () => {
           reset()
         },
         onError: (err: any) => {
-          toast.error(err?.message || 'Failed to add member')
+          toast.error(err?.response?.data?.message || 'Failed to add member')
         },
       },
     )

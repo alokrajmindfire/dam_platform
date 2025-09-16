@@ -1,5 +1,6 @@
 import { rateLimit } from 'express-rate-limit';
 import { Request, Response } from 'express';
+import logger from '../utils/logger';
 
 export const limiter = rateLimit({
   windowMs: 5 * 60 * 1000,
@@ -13,7 +14,7 @@ export const limiter = rateLimit({
   },
 
   handler: (req: Request, res: Response) => {
-    console.warn(
+    logger.info(
       `Rate limit exceeded: IP=${req.ip}, URL=${req.originalUrl}, Time=${new Date().toISOString()}`,
     );
 

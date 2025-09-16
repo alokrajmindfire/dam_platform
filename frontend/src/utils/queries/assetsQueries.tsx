@@ -43,6 +43,7 @@ export function useAssets(): UseAssetsResult {
         page,
         limit: 8,
       }),
+    staleTime: 0,
   })
 
   const assets = data?.assets ?? []

@@ -10,6 +10,14 @@
     "format:backend": "cd backend && npm run format",
     "format:asset-worker": "cd asset-worker && npm run format",
     "lint:all": "npm run lint:frontend && npm run lint:backend",
-    "test": "npm run format:frontend && npm run format:backend && npm run format:asset-worker"
+    "test": "npm run format:frontend && npm run format:backend && npm run format:asset-worker",
+    "docker:build": "docker-compose -f docker-compose.swarm.yml build",
+    "swarm:init": "docker swarm init || echo 'Swarm already initialized'",
+    "swarm:deploy": "docker stack deploy -c docker-compose.swarm.yml dam-platform",
+    "swarm:ps": "docker stack ps dam-platform",
+    "swarm:logs": "docker service logs -f dam-platform_backend",
+    "swarm:rm": "docker stack rm dam-platform",
+    "swarm:leave": "docker swarm leave --force",
+    "deploy": "npm run docker:build && npm run swarm:init && npm run swarm:deploy"
   }
 }

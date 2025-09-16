@@ -20,10 +20,10 @@ export async function initializeQueue() {
       logger.error('Worker Redis connection error:', err);
     });
 
-    console.log('Redis connected successfully');
-    console.log('Asset processing queue initialized');
+    logger.info('Redis connected successfully');
+    logger.info('Asset processing queue initialized');
   } catch (error) {
-    console.error('Redis connection failed:', error);
+    logger.error('Redis connection failed:', error);
     throw error;
   }
 }

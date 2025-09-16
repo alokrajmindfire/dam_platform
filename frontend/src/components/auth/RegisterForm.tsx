@@ -42,8 +42,8 @@ const RegisterForm: React.FC = () => {
           toast.success('Account created successfully!')
           reset()
         },
-        onError: (err: any) => {
-          toast.error(err?.message || 'Registration failed')
+        onError: (error: any) => {
+          toast.error(error?.response?.data?.message || 'Registration failed')
         },
       },
     )

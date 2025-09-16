@@ -3,6 +3,7 @@ import { asyncHandler } from '../utils/asyncHandler';
 import jwt from 'jsonwebtoken';
 import { IUser, User } from '../models/user.model';
 import { Request } from 'express';
+import logger from '../utils/logger';
 
 export const verifyJWT = asyncHandler(
   async (req: Request & { user?: IUser }, _, next) => {
@@ -11,7 +12,7 @@ export const verifyJWT = asyncHandler(
         req.cookies?.accessToken ||
         req.header('Authorization')?.replace('Bearer ', '');
 
-      console.log(token);
+      logger.info(token);
       if (!token) {
         throw new ApiError(401, 'Unauthorized request');
       }

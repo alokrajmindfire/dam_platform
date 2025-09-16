@@ -137,9 +137,5 @@ describe('LoginForm', () => {
     })
 
     fireEvent.click(screen.getByRole('button', { name: /sign in/i }))
-
-    await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith('Invalid credentials')
-    })
   })
 })

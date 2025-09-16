@@ -25,7 +25,7 @@ export const TeamForm: React.FC = () => {
         methods.reset()
       },
       onError: (err: any) => {
-        toast.error(err?.message || 'Failed to create team')
+        toast.error(err?.response?.data?.message || 'Failed to create team')
       },
     })
   }

@@ -1,23 +1,28 @@
 import * as Minio from 'minio';
+import logger from '../utils/logger';
+
+const { MINIO_ENDPOINT, MINIO_PORT, MINIO_ROOT_USER, MINIO_ROOT_PASSWORD } =
+  process.env;
 
 export const BUCKET_NAME = process.env.MINIO_DEFAULT_BUCKETS || 'dam-assets';
 
 export const minioClient = new Minio.Client({
-  endPoint: process.env.MINIO_ENDPOINT || 'localhost',
-  port: parseInt(process.env.MINIO_PORT || '9000', 10),
+  endPoint: MINIO_ENDPOINT || 'localhost',
+  port: parseInt(MINIO_PORT || '9000', 10),
   useSSL: false,
-  accessKey: process.env.MINIO_ROOT_USER || 'admin',
-  secretKey: process.env.MINIO_ROOT_PASSWORD || 'admin12345',
+  accessKey: MINIO_ROOT_USER || 'admin',
+  secretKey: MINIO_ROOT_PASSWORD || 'admin12345',
 });
+
 export async function initializeMinIO() {
   try {
     const bucketExists = await minioClient.bucketExists(BUCKET_NAME);
 
     if (!bucketExists) {
       await minioClient.makeBucket(BUCKET_NAME);
-      console.log(`MinIO bucket '${BUCKET_NAME}' created successfully`);
+      logger.info(`MinIO bucket '${BUCKET_NAME}' created successfully`);
     } else {
-      console.log(`MinIO bucket '${BUCKET_NAME}' already exists`);
+      logger.info(`MinIO bucket '${BUCKET_NAME}' already exists`);
     }
 
     const policy = {
@@ -25,7 +30,7 @@ export async function initializeMinIO() {
       Statement: [
         {
           Effect: 'Allow',
-          Principal: '*',
+          Principal: { AWS: ['*'] },
           Action: ['s3:GetObject'],
           Resource: [`arn:aws:s3:::${BUCKET_NAME}/*`],
         },
@@ -33,9 +38,9 @@ export async function initializeMinIO() {
     };
 
     await minioClient.setBucketPolicy(BUCKET_NAME, JSON.stringify(policy));
-    console.log('MinIO initialized successfully');
+    logger.info('MinIO initialized successfully');
   } catch (error) {
-    console.error('MinIO initialization failed:', error);
+    logger.error('MinIO initialization failed:', error);
     throw error;
   }
 }

@@ -1,8 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
 import { ApiError } from '../utils/ApiError';
+import { IUser } from '../models/user.model';
 
 export const requireAdmin = (
-  req: Request & { user?: any },
+  req: Request & { user?: IUser },
   _: Response,
   next: NextFunction,
 ) => {

@@ -11,7 +11,6 @@ const asyncHandler =
     try {
       await fn(req, res, next);
     } catch (err: unknown) {
-      // console.log(err)
       let statusCode = 500;
       let message = 'Internal Server Error';
       if (err instanceof Error) {

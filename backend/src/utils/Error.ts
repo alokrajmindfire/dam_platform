@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import logger from './logger';
 
 interface CustomError extends Error {
   statusCode?: number;
@@ -7,7 +8,7 @@ interface CustomError extends Error {
 }
 
 export const ErrorHandler = (err: CustomError, _: Request, res: Response) => {
-  console.error('Error Caught:', {
+  logger.error('Error Caught:', {
     message: err.message,
     stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
     details: err.details || null,
