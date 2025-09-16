@@ -38,7 +38,8 @@ function AssetGallery() {
   const lastPage = Math.ceil(total / 8) || 1
 
   return (
-    <div>
+    <section>
+      <h1 className="sr-only">Asset Gallery</h1>
       <AssetFilters
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
@@ -51,18 +52,23 @@ function AssetGallery() {
       />
 
       {isLoading ? (
-        <p>Loading...</p>
+        <p role="status" aria-live="polite">
+          Loading assets...
+        </p>
       ) : assets.length === 0 ? (
         <p>No assets found.</p>
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <section
+            aria-label="Asset grid"
+            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+          >
             {assets.map((asset) => (
-              <AssetCard key={asset._id} asset={asset} aria-describedby={asset._id} />
+              <AssetCard key={asset._id} asset={asset} />
             ))}
-          </div>
+          </section>
 
-          <Pagination className="mt-4 flex justify-center">
+          <Pagination className="mt-4 flex justify-center" aria-label="Pagination navigation">
             <PaginationContent>
               <PaginationItem>
                 <PaginationPrevious
@@ -73,7 +79,7 @@ function AssetGallery() {
                 />
               </PaginationItem>
 
-              <span className="px-4 py-2 text-sm text-muted-foreground">
+              <span className="px-4 py-2 text-sm text-muted-foreground" aria-live="polite">
                 Page {page} of {lastPage}
               </span>
 
@@ -89,7 +95,7 @@ function AssetGallery() {
           </Pagination>
         </>
       )}
-    </div>
+    </section>
   )
 }
 

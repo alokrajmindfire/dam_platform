@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Download, Trash } from 'lucide-react'
@@ -21,21 +21,28 @@ export function AssetCard({ asset }: AssetCardProps) {
   )
   const [streamAvailable, setStreamAvailable] = useState(true)
 
-  const isImage = asset.mimeType.startsWith('image/')
-  const isVideo = asset.mimeType.startsWith('video/')
-  const isPdf = asset.mimeType === 'application/pdf'
+  const isImage = useMemo(() => asset.mimeType.startsWith('image/'), [asset.mimeType])
+  const isVideo = useMemo(() => asset.mimeType.startsWith('video/'), [asset.mimeType])
+  const isPdf = useMemo(() => asset.mimeType === 'application/pdf', [asset.mimeType])
 
   const downloadMutation = useIncrementDownload()
   const deleteMutation = useDeleteMutation()
 
-  const backendDownloadUrl = `/api/assets/${asset._id}/download`
-  const backendStreamUrl = open ? `/api/assets/${asset._id}/stream` : ''
-  const backendThumbnailUrl = `/api/assets/${asset._id}/thumbnail`
+  const backendDownloadUrl = useMemo(() => `/api/assets/${asset._id}/download`, [asset._id])
+  const backendStreamUrl = useMemo(
+    () => (open ? `/api/assets/${asset._id}/stream` : ''),
+    [asset._id, open],
+  )
+  const backendThumbnailUrl = useMemo(() => `/api/assets/${asset._id}/thumbnail`, [asset._id])
 
   useEffect(() => {
     const fetchThumbnail = async () => {
+      if (isPdf) {
+        setThumbnailStatus('unavailable')
+        return
+      }
       try {
-        const res = await fetch(backendThumbnailUrl, { method: 'HEAD' }) // lightweight check
+        const res = await fetch(backendThumbnailUrl, { method: 'HEAD' })
         if (res.ok) {
           setThumbnailStatus('available')
         } else {
@@ -72,7 +79,7 @@ export function AssetCard({ asset }: AssetCardProps) {
   const handleStreamError = () => setStreamAvailable(false)
 
   return (
-    <>
+    <article>
       <div
         onClick={() => setOpen(true)}
         role="button"
@@ -82,6 +89,7 @@ export function AssetCard({ asset }: AssetCardProps) {
       >
         {thumbnailStatus === 'available' && (isImage || isVideo) ? (
           <img
+            loading="lazy"
             src={backendThumbnailUrl}
             alt={asset.filename}
             className="object-cover w-full h-full"
@@ -106,6 +114,7 @@ export function AssetCard({ asset }: AssetCardProps) {
               <div className="w-full flex items-center justify-center bg-gray-100 rounded-lg overflow-hidden aspect-video">
                 {isImage && backendStreamUrl && (
                   <img
+                    loading="lazy"
                     src={backendStreamUrl}
                     alt={asset.filename}
                     className="object-contain w-full h-full"
@@ -128,7 +137,7 @@ export function AssetCard({ asset }: AssetCardProps) {
             ) : null}
 
             {isPdf && streamAvailable && backendStreamUrl ? (
-              <div className="w-full h-[500px] border border-gray-300 rounded">
+              <div className="w-full h-[300px] border border-gray-300 rounded">
                 <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
                   <Viewer fileUrl={backendStreamUrl} />
                 </Worker>
@@ -201,6 +210,6 @@ export function AssetCard({ asset }: AssetCardProps) {
           </div>
         </DialogContent>
       </Dialog>
-    </>
+    </article>
   )
 }

@@ -2,7 +2,9 @@
 
 import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { BrowserRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { AuthProvider } from '../src/contexts/AuthContext'
 import { AssetCard } from '../src/components/assets/AssetCard'
 import '@testing-library/jest-dom'
 
