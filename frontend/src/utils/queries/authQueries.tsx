@@ -33,9 +33,6 @@ export const useRegisterMutation = () => {
       login(user)
       navigate('/')
     },
-    onError: (error: unknown) => {
-      console.error('Error', error)
-    },
   })
 }
 

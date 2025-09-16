@@ -54,6 +54,15 @@ services:
       - /tmp:/tmp
     deploy:
       replicas: 1
+      labels:
+        - "swarm.autoscaler=true"
+      resources:
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+        limits:
+          cpus: '0.5'
+          memory: 512M
 
   backend:
     image: dam-platform-backend
@@ -80,6 +89,15 @@ services:
       - REDIS_PASSWORD=admin12345
     deploy:
       replicas: 1
+      labels:
+        - "swarm.autoscaler=true"
+      resources:
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+        limits:
+          cpus: '0.5'
+          memory: 512M
 
   frontend:
     image: dam-platform-frontend
@@ -91,6 +109,6 @@ services:
     deploy:
       replicas: 1
 
-volumes:
+    volumes:
   mongodb_data:
     driver: local

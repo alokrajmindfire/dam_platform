@@ -35,8 +35,8 @@ export const ProjectForm: React.FC = () => {
         toast.success('Project created successfully!')
         methods.reset()
       },
-      onError: (err: any) => {
-        toast.error(err?.message || 'Failed to create project')
+      onError: (error: any) => {
+        toast.error(error?.response?.data?.message || 'Failed to create project')
       },
     })
   }
