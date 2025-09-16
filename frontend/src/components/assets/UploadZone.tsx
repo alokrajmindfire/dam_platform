@@ -108,13 +108,15 @@ export function UploadZone() {
     <FormProvider {...methods}>
       <div className="space-y-6">
         <Card className="p-4">
-          <div className="flex gap-4 items-center">
+          <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-start">
             <div
               {...getRootProps()}
               role="button"
               aria-label="Upload files by dragging and dropping or selecting"
               tabIndex={0}
-              className={`flex-1 border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all ${isDragActive ? 'border-primary bg-muted' : 'border-gray-300 hover:border-primary/50'}`}
+              className={`w-full md:flex-1 border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all ${
+                isDragActive ? 'border-primary bg-muted' : 'border-gray-300 hover:border-primary/50'
+              }`}
             >
               <input {...getInputProps()} aria-label="File input" />
               <div className="flex flex-col items-center gap-2">
@@ -126,7 +128,7 @@ export function UploadZone() {
               </div>
             </div>
 
-            <div className="w-80 space-y-3">
+            <div className="w-full md:w-80 space-y-3">
               <div className="space-y-1">
                 <label className="text-sm font-medium">Scope</label>
                 <div className="flex gap-2">
@@ -134,7 +136,9 @@ export function UploadZone() {
                     type="button"
                     onClick={() => setValue('scope', 'personal')}
                     aria-label="Set scope to personal"
-                    className={`px-3 py-1 rounded ${scope === 'personal' ? 'bg-primary text-green-600' : 'border'}`}
+                    className={`px-3 py-1 rounded ${
+                      scope === 'personal' ? 'bg-primary text-green-600' : 'border'
+                    }`}
                   >
                     Personal
                   </Button>
@@ -142,7 +146,9 @@ export function UploadZone() {
                     type="button"
                     onClick={() => setValue('scope', 'team')}
                     aria-label="Set scope to team"
-                    className={`px-3 py-1 rounded ${scope === 'team' ? 'bg-primary text-green-600' : 'border'}`}
+                    className={`px-3 py-1 rounded ${
+                      scope === 'team' ? 'bg-primary text-green-600' : 'border'
+                    }`}
                   >
                     Team
                   </Button>

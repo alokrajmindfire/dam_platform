@@ -4,7 +4,7 @@ import logger from '../utils/logger';
 
 export const limiter = rateLimit({
   windowMs: 5 * 60 * 1000,
-  max: 100,
+  max: 500,
   standardHeaders: true,
   legacyHeaders: false,
 
