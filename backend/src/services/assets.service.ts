@@ -7,6 +7,7 @@ import { IAsset } from '../models/assets.model';
 import { assetProcessingQueue } from '../config/queue';
 import { FindManyFilters } from '../types/assets.types';
 import { ApiError } from '../utils/ApiError';
+import logger from 'src/utils/logger';
 
 type Owner = {
   userId?: Schema.Types.ObjectId;
@@ -72,7 +73,7 @@ export class AssetService {
 
       return asset;
     } catch (error) {
-      console.error('Asset upload failed:', error);
+      logger.error('Asset upload failed:', error);
       throw new Error('Failed to upload asset');
     }
   }

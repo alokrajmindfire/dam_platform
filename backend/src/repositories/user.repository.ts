@@ -1,4 +1,4 @@
-import { User } from '../models/user.model';
+import { IUser, User } from '../models/user.model';
 
 export class UserRepository {
   static async findById(userId: number) {
@@ -17,8 +17,10 @@ export class UserRepository {
     return User.create(data);
   }
 
-  static async save(user: any) {
-    return user.save({ validateBeforeSave: false });
+  static async save(user: Partial<IUser>) {
+    if (user && typeof user.save === 'function') {
+      return user.save({ validateBeforeSave: false });
+    }
   }
 
   static async selectWithoutPassword(userId: string) {
