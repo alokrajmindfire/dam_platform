@@ -5,7 +5,7 @@ import path from 'path';
 import { minioClient, BUCKET_NAME } from '../config/minio';
 import { Asset } from '../models/assets.model';
 import pdfParse from 'pdf-parse';
-import logger from '../utils/logger';
+import logger from '../config/logger';
 
 interface ProcessAssetData {
   assetId: string;

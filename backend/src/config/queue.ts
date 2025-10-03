@@ -2,9 +2,18 @@ import { Queue } from 'bullmq';
 import IORedis from 'ioredis';
 import logger from '../utils/logger';
 
-export const redisConnection = new IORedis(
-  process.env.REDIS_HOST || 'redis://localhost:6379',
-);
+const redisHost = process.env.REDIS_HOST || 'redis';
+const redisPort = parseInt(process.env.REDIS_PORT || '6379', 10);
+const redisPassword = process.env.REDIS_PASSWORD || 'admin12345';
+
+export const redisConnection = new IORedis({
+  host: redisHost,
+  port: redisPort,
+  password: redisPassword,
+  maxRetriesPerRequest: null,
+  enableReadyCheck: true,
+  retryStrategy: (times) => Math.min(times * 50, 2000),
+});
 
 export const assetProcessingQueue = new Queue('asset-processing', {
   connection: redisConnection,

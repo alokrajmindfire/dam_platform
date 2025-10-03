@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: `/api`,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -15,8 +15,14 @@ export const setAuthToken = (token: string | null) => {
   }
 }
 
+api.interceptors.request.use((request) => {
+  console.log('Starting Request', request.url, request.method, request.data)
+  return request
+})
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    return response
+  },
   (error) => {
     // console.log("axios error",error)
     if (error.code === 'ERR_NETWORK') {

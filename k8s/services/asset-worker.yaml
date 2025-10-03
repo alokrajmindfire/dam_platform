@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: asset-worker
+  name: asset-worker
+spec:
+  ports:
+  - name: http-metrics
+    port: 3000
+    protocol: TCP
+    targetPort: 3000
+  selector:
+    app: asset-worker
+  type: ClusterIP
+status:
+  loadBalancer: {}

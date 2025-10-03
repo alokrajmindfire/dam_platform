@@ -1,5 +1,5 @@
 import * as Minio from 'minio';
-import logger from '../utils/logger';
+import logger from './logger';
 
 export const BUCKET_NAME = process.env.MINIO_DEFAULT_BUCKETS || 'dam-assets';
 

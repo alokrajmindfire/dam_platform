@@ -3,8 +3,7 @@ import { HelmetOptions } from 'helmet';
 
 const APP_CONFIG = {
   CORS_ORIGINS: (
-    process.env.CORS_ORIGINS ||
-    'http://localhost:3000,http://localhost:5173,http://dam.local'
+    process.env.CORS_ORIGINS || 'http://localhost:3000,http://localhost:5173'
   )
     .split(',')
     .map((origin) => origin.trim()),

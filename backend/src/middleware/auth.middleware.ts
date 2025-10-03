@@ -11,6 +11,7 @@ export const verifyJWT = asyncHandler(
       const token =
         req.cookies?.accessToken ||
         req.header('Authorization')?.replace('Bearer ', '');
+      console.log('Token:', token);
 
       logger.info(token);
       if (!token) {

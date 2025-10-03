@@ -61,7 +61,7 @@ router
 router.route('/').get(verifyJWT, getAssets);
 router.route('/download/:id').patch(verifyJWT, updateAssetsDownloadCount);
 router.route('/:id').delete(verifyJWT, deleteAsset);
-router.get('/:assetId/stream', verifyJWT, streamAsset);
-router.get('/:assetId/download', verifyJWT, downloadAsset);
-router.get('/:assetId/thumbnail', verifyJWT, streamThumbnail);
+router.route('/:assetId/stream').get(verifyJWT, streamAsset);
+router.route('/:assetId/download').get(verifyJWT, downloadAsset);
+router.route('/:assetId/thumbnail').get(verifyJWT, streamThumbnail);
 export default router;

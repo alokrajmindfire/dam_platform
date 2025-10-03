@@ -54,6 +54,7 @@ const userSchema: Schema<IUser> = new Schema(
     timestamps: true,
   },
 );
+// Hooks for remove password.
 
 userSchema.pre<IUser>('save', async function (next) {
   if (!this.isModified('password')) return next();

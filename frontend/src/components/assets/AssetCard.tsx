@@ -8,6 +8,7 @@ import { Viewer, Worker } from '@react-pdf-viewer/core'
 import '@react-pdf-viewer/core/lib/styles/index.css'
 import { useAuth } from '@/contexts/AuthContext'
 import { useDeleteMutation, useIncrementDownload } from '@/utils/queries/assetsQueries'
+import api from '@/utils/axios'
 
 interface AssetCardProps {
   asset: Asset
@@ -20,6 +21,8 @@ export function AssetCard({ asset }: AssetCardProps) {
     'loading',
   )
   const [streamAvailable, setStreamAvailable] = useState(true)
+  const [thumbnailUrl, setThumbnailUrl] = useState<string>('')
+  const [streamUrl, setStreamUrl] = useState<string>('')
 
   const isImage = useMemo(() => asset.mimeType.startsWith('image/'), [asset.mimeType])
   const isVideo = useMemo(() => asset.mimeType.startsWith('video/'), [asset.mimeType])
@@ -28,13 +31,11 @@ export function AssetCard({ asset }: AssetCardProps) {
   const downloadMutation = useIncrementDownload()
   const deleteMutation = useDeleteMutation()
 
-  const backendDownloadUrl = useMemo(() => `/api/assets/${asset._id}/download`, [asset._id])
-  const backendStreamUrl = useMemo(
-    () => (open ? `/api/assets/${asset._id}/stream` : ''),
-    [asset._id, open],
-  )
-  const backendThumbnailUrl = useMemo(() => `/api/assets/${asset._id}/thumbnail`, [asset._id])
+  const backendDownloadUrl = useMemo(() => `/assets/${asset._id}/download`, [asset._id])
+  const backendStreamPath = useMemo(() => `/assets/${asset._id}/stream`, [asset._id])
+  const backendThumbnailPath = useMemo(() => `/assets/${asset._id}/thumbnail`, [asset._id])
 
+  // Fetch thumbnail as blob and create object URL
   useEffect(() => {
     const fetchThumbnail = async () => {
       if (isPdf) {
@@ -42,8 +43,10 @@ export function AssetCard({ asset }: AssetCardProps) {
         return
       }
       try {
-        const res = await fetch(backendThumbnailUrl, { method: 'HEAD' })
-        if (res.ok) {
+        const res = await api.get(backendThumbnailPath, { responseType: 'blob' })
+        if (res.status === 200 && res.data) {
+          const url = URL.createObjectURL(res.data)
+          setThumbnailUrl(url)
           setThumbnailStatus('available')
         } else {
           setThumbnailStatus('unavailable')
@@ -53,15 +56,50 @@ export function AssetCard({ asset }: AssetCardProps) {
       }
     }
     fetchThumbnail()
-  }, [backendThumbnailUrl])
+
+    // Cleanup function to revoke object URL
+    return () => {
+      if (thumbnailUrl) {
+        URL.revokeObjectURL(thumbnailUrl)
+      }
+    }
+  }, [backendThumbnailPath, isPdf])
+
+  // Fetch stream data when dialog opens
+  useEffect(() => {
+    const fetchStream = async () => {
+      if (!open || isPdf) return
+
+      try {
+        const res = await api.get(backendStreamPath, { responseType: 'blob' })
+        if (res.status === 200 && res.data) {
+          const url = URL.createObjectURL(res.data)
+          setStreamUrl(url)
+          setStreamAvailable(true)
+        } else {
+          setStreamAvailable(false)
+        }
+      } catch {
+        setStreamAvailable(false)
+      }
+    }
+
+    fetchStream()
+
+    // Cleanup function to revoke object URL
+    return () => {
+      if (streamUrl) {
+        URL.revokeObjectURL(streamUrl)
+      }
+    }
+  }, [open, backendStreamPath, isPdf])
 
   const handleDownload = async () => {
     try {
       await downloadMutation.mutateAsync(asset._id)
-      const response = await fetch(backendDownloadUrl)
-      if (!response.ok) throw new Error('Download failed')
+      const response = await api.get(backendDownloadUrl, { responseType: 'blob' })
 
-      const blob = await response.blob()
+      const blob = new Blob([response.data])
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
@@ -71,8 +109,21 @@ export function AssetCard({ asset }: AssetCardProps) {
       link.remove()
       window.URL.revokeObjectURL(url)
     } catch (err) {
-      // console.error('Download failed', err)
       toast.error('Download failed')
+    }
+  }
+
+  const handlePreviewInBrowser = async () => {
+    try {
+      const response = await api.get(backendStreamPath, { responseType: 'blob' })
+      const blob = new Blob([response.data], { type: asset.mimeType })
+      const url = URL.createObjectURL(blob)
+      window.open(url, '_blank')
+
+      // Revoke after a delay to allow the new tab to load
+      setTimeout(() => URL.revokeObjectURL(url), 1000)
+    } catch (err) {
+      toast.error('Preview failed')
     }
   }
 
@@ -87,10 +138,10 @@ export function AssetCard({ asset }: AssetCardProps) {
         aria-label={`Open asset ${asset.originalName || asset.filename}`}
         className="cursor-pointer rounded-lg overflow-hidden shadow hover:shadow-md transition bg-gray-100 flex items-center justify-center aspect-[4/3]"
       >
-        {thumbnailStatus === 'available' && (isImage || isVideo) ? (
+        {thumbnailStatus === 'available' && (isImage || isVideo) && thumbnailUrl ? (
           <img
             loading="lazy"
-            src={backendThumbnailUrl}
+            src={thumbnailUrl}
             alt={asset.filename}
             className="object-cover w-full h-full"
           />
@@ -112,18 +163,18 @@ export function AssetCard({ asset }: AssetCardProps) {
           <div className="flex flex-col gap-4">
             {!isPdf && (isImage || isVideo) && streamAvailable ? (
               <div className="w-full flex items-center justify-center bg-gray-100 rounded-lg overflow-hidden aspect-video">
-                {isImage && backendStreamUrl && (
+                {isImage && streamUrl && (
                   <img
                     loading="lazy"
-                    src={backendStreamUrl}
+                    src={streamUrl}
                     alt={asset.filename}
                     className="object-contain w-full h-full"
                     onError={handleStreamError}
                   />
                 )}
-                {isVideo && backendStreamUrl && (
+                {isVideo && streamUrl && (
                   <video
-                    src={backendStreamUrl}
+                    src={streamUrl}
                     controls
                     className="w-full h-full object-contain"
                     onError={handleStreamError}
@@ -136,10 +187,18 @@ export function AssetCard({ asset }: AssetCardProps) {
               </div>
             ) : null}
 
-            {isPdf && streamAvailable && backendStreamUrl ? (
+            {isPdf && streamAvailable ? (
               <div className="w-full h-[300px] border border-gray-300 rounded">
                 <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
-                  <Viewer fileUrl={backendStreamUrl} />
+                  <Viewer
+                    fileUrl={backendStreamPath}
+                    httpHeaders={
+                      {
+                        // Add any necessary auth headers here if needed
+                        // 'Authorization': `Bearer ${token}`
+                      }
+                    }
+                  />
                 </Worker>
               </div>
             ) : isPdf && !streamAvailable ? (
@@ -191,7 +250,7 @@ export function AssetCard({ asset }: AssetCardProps) {
               </Button>
               <Button
                 variant="secondary"
-                onClick={() => backendStreamUrl && window.open(backendStreamUrl, '_blank')}
+                onClick={handlePreviewInBrowser}
                 disabled={!streamAvailable}
               >
                 Preview in Browser

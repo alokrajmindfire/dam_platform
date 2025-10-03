@@ -108,6 +108,7 @@ export class AssetService {
     if (!asset) throw new ApiError(404, 'Asset not found');
     if (!(asset as any).thumbnailUrl)
       throw new ApiError(404, 'Thumbnail not found');
+    console.log('Thumbnail path:', (asset as any).thumbnailUrl);
 
     const stream = await minioClient.getObject(
       BUCKET_NAME,
